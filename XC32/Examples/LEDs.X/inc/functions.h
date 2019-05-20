@@ -11,6 +11,7 @@
  * @warning     N/A
  */
 #include "board.h"
+ 
 
 #ifndef FUNCTION_H_
 #define FUNCTION_H_
@@ -22,7 +23,8 @@ extern "C" {
 
 /**@brief Function prototypes.
  */
-
+void conf_CLK  ( void );
+void conf_GPIO ( void );
 
 /**@brief Constants.
  */
