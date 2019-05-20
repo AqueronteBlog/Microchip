@@ -1,10 +1,8 @@
 /**
  * @brief       main.c
- * @details     [TODO] This project shows how to work with the internal peripherals GPIO and Timer0.
- *              An interrupt will be generated every 0.5s by the TIMER0, the state of all the LEDs
- *              will be changed then.
+ * @details     This project shows how to work with the internal peripherals GPIO. All the LEDs ( LED1, LED2 and
+ *              LED3 ) blink for a period of time.
  *
- *              The microcontroller remains in low power the rest of the time.
  *
  * @return      N/A
  *
@@ -40,15 +38,15 @@ void main ( void )
 {
     uint32_t    i   =   0UL;
     
-    TRISDCLR    =   ( LED1 | LED3_RGB_RED );
-    TRISCCLR    =   ( LED2 | LED3_RGB_GREEN | LED3_RGB_BLUE );
+    conf_CLK  ();
+    conf_GPIO ();
+        
     
     while ( 1 )
     {
         /* Blink LED1, LED2 and LED3    */
         PORTDINV   = ( LED1 | LED3_RGB_RED );
         PORTCINV   = ( LED2 | LED3_RGB_GREEN | LED3_RGB_BLUE );
-        for ( i = 0UL; i < 0x232; i++ );
+        for ( i = 0UL; i < 0x23232; i++ );
     }
 }
-
