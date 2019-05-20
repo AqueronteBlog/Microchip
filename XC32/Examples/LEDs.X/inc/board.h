@@ -11,6 +11,8 @@
  * @pre         N/A
  * @warning     N/A
  */
+#include <xc.h>
+
 
 #ifndef BOARD_H_
 #define BOARD_H_
