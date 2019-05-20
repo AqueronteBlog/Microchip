@@ -29,6 +29,7 @@ extern "C" {
 
 /**@brief Constants.
  */
+
 // PIC32MM0256GPM064 Configuration Bit Settings
 
 // 'C' source line config statements
@@ -60,7 +61,7 @@ extern "C" {
 // FOSCSEL
 #pragma config FNOSC = LPRC             // Oscillator Selection bits (Low power RC oscillator (LPRC))
 #pragma config PLLSRC = FRC             // System PLL Input Clock Selection bit (FRC oscillator is selected as PLL reference input on device reset)
-#pragma config SOSCEN = ON              // Secondary Oscillator Enable bit (Secondary oscillator is enabled)
+#pragma config SOSCEN = OFF             // Secondary Oscillator Enable bit (Secondary oscillator is disabled)
 #pragma config IESO = ON                // Two Speed Startup Enable bit (Two speed startup is enabled)
 #pragma config POSCMOD = OFF            // Primary Oscillator Selection bit (Primary oscillator is disabled)
 #pragma config OSCIOFNC = OFF           // System Clock on CLKO Pin Enable bit (OSCO pin operates as a normal I/O)
@@ -73,7 +74,8 @@ extern "C" {
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
 
-#include <xc.h>    
+#include <xc.h>
+ 
 
 
 
