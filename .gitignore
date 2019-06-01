@@ -3,3 +3,6 @@ XC32/Documents/PIC32MM USB Curiosity Development Board - RGB Color Mixing Demo.z
 XC32/Examples/LEDs.X/build/
 XC32/Examples/LEDs.X/dist/
 XC32/Examples/Timer1.X/build/
+XC32/Examples/Timer1.X/dist/default/production/
+XC32/Examples/Timer1.X/nbproject/
+XC32/Examples/Timer1.X/Makefile
