@@ -38,8 +38,9 @@ void main ( void )
 {
     uint32_t    i   =   0UL;
     
-    conf_CLK  ();
-    conf_GPIO ();
+    conf_CLK    ();
+    conf_GPIO   ();
+    conf_TIMER1 ();
         
     
     while ( 1 )
