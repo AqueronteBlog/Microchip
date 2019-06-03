@@ -28,7 +28,10 @@
  */
 void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL3SOFT) ) ) T1Interrupt ( void )
 {
+    /* Execute new action    */
+    changeLEDstate   =   1UL;
+    
     
     /* Clear the timer interrupt status flag ( T1IF )     */
-    IFS0SET  =   0x00020000;
+    IFS0CLR  =   0x00020000;
 }
