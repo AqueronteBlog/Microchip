@@ -47,7 +47,7 @@ extern "C" {
 
 // FPOR
 #pragma config BOREN = BOR3             // Brown-out Reset Enable bits (Brown-out Reset enabled in hardware; SBOREN bit disabled)
-#pragma config RETVR = OFF              // Retention Voltage Regulator Enable bit (Retention regulator is disabled)
+#pragma config RETVR = ON               // Retention Voltage Regulator Enable bit (Retention regulator is enabled and controlled by RETEN bit during sleep)
 #pragma config LPBOREN = ON             // Downside Voltage Protection Enable bit (Low power BOR is enabled, when main BOR is disabled)
 
 // FWDT
@@ -61,7 +61,7 @@ extern "C" {
 // FOSCSEL
 #pragma config FNOSC = LPRC             // Oscillator Selection bits (Low power RC oscillator (LPRC))
 #pragma config PLLSRC = FRC             // System PLL Input Clock Selection bit (FRC oscillator is selected as PLL reference input on device reset)
-#pragma config SOSCEN = OFF             // Secondary Oscillator Enable bit (Secondary oscillator is disabled)
+#pragma config SOSCEN = ON              // Secondary Oscillator Enable bit (Secondary oscillator is enabled)
 #pragma config IESO = ON                // Two Speed Startup Enable bit (Two speed startup is enabled)
 #pragma config POSCMOD = OFF            // Primary Oscillator Selection bit (Primary oscillator is disabled)
 #pragma config OSCIOFNC = OFF           // System Clock on CLKO Pin Enable bit (OSCO pin operates as a normal I/O)
@@ -75,7 +75,7 @@ extern "C" {
 // Use project enums instead of #define for ON and OFF.
 
 #include <xc.h>
- 
+
 
 
 
