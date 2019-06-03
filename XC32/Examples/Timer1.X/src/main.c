@@ -1,8 +1,9 @@
 /**
  * @brief       main.c
- * @details     [TODO]This project shows how to work with the internal peripherals GPIO. All the LEDs ( LED1, LED2 and
- *              LED3 ) blink for a period of time.
- *
+ * @details     This project shows how to work with the internal peripherals Timer1. Both LED1 and LED2
+ *              will change their state every ~250ms by overflow of the Timer1.
+ * 
+ *              The rest of the time, the microcontroller will be in the lowest power-mode: Retention Sleep Mode.
  *
  * @return      N/A
  *
@@ -29,25 +30,35 @@
 
 /**@brief Variables.
  */
-
+volatile uint32_t changeLEDstate     =   0UL;       /*!< Flag to change the state of the LEDs     */
 
 
 /**@brief Function for application main entry.
  */
 void main ( void ) 
 {
-    uint32_t    i   =   0UL;
-    
     conf_CLK    ();
+    conf_PWRCON ();
     conf_GPIO   ();
     conf_TIMER1 ();
-        
-    
+     
+    /* All interrupts are enabled     */
+     __builtin_enable_interrupts();
+     
     while ( 1 )
     {
-        /* Blink LED1, LED2 and LED3    */
-        PORTDINV   = ( LED1 | LED3_RGB_RED );
-        PORTCINV   = ( LED2 | LED3_RGB_GREEN | LED3_RGB_BLUE );
-        for ( i = 0UL; i < 0x23232; i++ );
+        /* uC in low power mode: Retention Sleep Mode     */
+        asm volatile ( "wait" );
+        
+        /* Check the next action     */
+        if ( changeLEDstate == 1UL )
+        {
+            /* Blink LED1 and LED2    */
+            PORTDINV   = ( LED1 );
+            PORTCINV   = ( LED2 );
+            
+            /* Reset variable    */
+            changeLEDstate   =   0UL;
+        }        
     }
 }
