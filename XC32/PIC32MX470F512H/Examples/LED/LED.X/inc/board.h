@@ -1,13 +1,13 @@
 /**
  * @brief       board.h
- * @details     It characterizes the board ( for this example ): PIC32MM USB Development Board.
+ * @details     It characterizes the board ( for this example ): PIC32MX470 Development Board.
  *
  *
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        19/May/2019
- * @version     19/May/2019   The ORIGIN
+ * @date        30/November/2021
+ * @version     30/November/2021   The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -21,14 +21,13 @@
 extern "C" {
 #endif
 
+    
 /**@brief LEDs.
  */
 typedef enum{
-  LED1              = ( 1UL << 3UL ),   /*!<   LED1: RD3   */
-  LED2              = ( 1UL << 13UL ),  /*!<   LED2: RC13  */
-  LED3_RGB_RED      = ( 1UL << 1UL ),   /*!<   LED3: RD1   */
-  LED3_RGB_GREEN    = ( 1UL << 3UL ),   /*!<   LED3: RC3   */
-  LED3_RGB_BLUE     = ( 1UL << 15UL )   /*!<   LED3: RC15  */
+  LED1  = ( 1UL << 4UL ),      /*!<   LED1: RE4    */
+  LED2  = ( 1UL << 6UL ),      /*!<   LED2: RE6    */
+  LED3  = ( 1UL << 7UL )       /*!<   LED3: RE7    */
 } PIC32MM_USB_Curiosity_leds_t;
 
 
