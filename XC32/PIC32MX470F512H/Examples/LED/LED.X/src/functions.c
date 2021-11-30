@@ -5,8 +5,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        19/May/2019
- * @version     19/May/2019   The ORIGIN
+ * @date        30/November/2021
+ * @version     30/November/2021   The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -28,8 +28,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        20/May/2019
- * @version     20/May/2019      The ORIGIN
+ * @date        30/November/2021
+ * @version     30/November/2021      The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -50,7 +50,15 @@ void conf_CLK  ( void )
     while ( OSCCONbits.OSWEN == 1 );    // [TODO]       Too dangerous!!! The uC may get stuck here
                                         // [WORKAROUND] Insert a counter
     
-    SYSKEY  =    0x00000000;    // Force lock
+    /* Wait until Peripheral Bus Clock (PBCLK) Divisor can be written   */
+    while ( OSCCONbits.PBDIVRDY == 0 ); // [TODO]       Too dangerous!!! The uC may get stuck here
+                                        // [WORKAROUND] Insert a counter
+    
+    /* PBCLK is SYSCLK divided by 1 */
+    OSCCONbits.PBDIV    =   0b00;
+        
+    
+    SYSKEY  =    0x33333333;    // Force lock
 }
 
 
@@ -59,15 +67,10 @@ void conf_CLK  ( void )
  * @brief       void conf_GPIO  ( void )
  * @details     It configures GPIO to work with the LEDs.
  * 
- *              PortD
- *                  - LED1:             RD3
- *                  - LED3_RGB_RED:     RD1
- * 
- *              PortC
- *                  - LED2:             RC13
- *                  - LED3_RGB_GREEN:   RC3
- *                  - LED3_RGB_BLUE:    RC15
-
+ *              PortE
+ *                  - LED1: RE4 (Digital output)
+ *                  - LED2: RE6 (Digital output)
+ *                  - LED3: RE7 (Digital output)
  *
  * @param[in]    N/A.
  *
@@ -77,13 +80,16 @@ void conf_CLK  ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        20/May/2019
- * @version     20/May/2019      The ORIGIN
+ * @date        30/November/2021
+ * @version     30/November/2021      The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
 void conf_GPIO  ( void )
 {
-    TRISDCLR    =   ( LED1 | LED3_RGB_RED );
-    TRISCCLR    =   ( LED2 | LED3_RGB_GREEN | LED3_RGB_BLUE );
+    ANSELECLR  |=   ( LED1 | LED2 | LED3 );
+    TRISECLR   |=   ( LED1 | LED2 | LED3 );
+    
+    /* Reset value of the LEDs = OFF */
+    PORTESET   |=   ( LED1 | LED2 | LED3 );  
 }
