@@ -1,14 +1,14 @@
 /**
  * @brief       main.c
- * @details     This project shows how to work with the internal peripherals GPIO. All the LEDs ( LED1, LED2 and
+ * @details     [TOOD] This project shows how to work with the internal peripherals GPIO. All the LEDs ( LED1, LED2 and
  *              LED3 ) blink for a period of time.
  *
  *
  * @return      N/A
  *
  * @author      Manuel Caballero (aqueronteblog@gmail.com)
- * @date        30/November/2021
- * @version     30/November/2021    The ORIGIN
+ * @date        02/December/2021
+ * @version     02/December/2021    The ORIGIN
  * @pre         This firmware was tested on the PIC32MX470 Curiosity Development Board with MPLAB X IDE v5.50.
  * @warning     N/A.
  * @pre         This code belongs to AqueronteBlog. 
@@ -42,9 +42,9 @@ void main ( void )
     uint32_t    i   =   0UL;
     
     /* Configure the peripherals*/
-    conf_CLK  ();
-    conf_GPIO ();
-        
+    conf_CLK    ();
+    conf_GPIO   ();
+    conf_Timers ();    
     
     while ( 1 )
     {
