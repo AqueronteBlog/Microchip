@@ -5,8 +5,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        30/November/2021
- * @version     30/November/2021   The ORIGIN
+ * @date        02/December/2021
+ * @version     02/December/2021   The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -92,4 +92,29 @@ void conf_GPIO  ( void )
     
     /* Reset value of the LEDs = OFF */
     PORTESET   |=   ( LED1 | LED2 | LED3 );  
+}
+
+
+
+/**
+ * @brief       void conf_Timers  ( void )
+ * @details     It configures the Timers.
+ * 
+ *
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        02/December/2021
+ * @version     02/December/2021      The ORIGIN
+ * @pre         N/A
+ * @warning     N/A
+ */
+void conf_Timers  ( void )
+{
+    
 }
