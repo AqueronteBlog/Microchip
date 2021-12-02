@@ -8,3 +8,5 @@ XC32/Examples/Timer1.X/nbproject/
 XC32/Examples/Timer1.X/Makefile
 XC32/Examples/Timer1.X/dist/default/debug/
 
+XC32/PIC32MX470F512H/Examples/Timers.X/.generated_files/
+XC32/PIC32MX470F512H/Examples/Timers.X/build/default/production/
