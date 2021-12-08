@@ -32,7 +32,7 @@
 
 /**@brief Variables.
  */
-
+volatile uint32_t changeLEDstate     =   0UL;       /*!< Flag to change the state of the LEDs     */
 
 
 /**@brief Function for application main entry.
@@ -46,10 +46,23 @@ void main ( void )
     conf_GPIO   ();
     conf_Timers ();    
     
+    /* All interrupts are enabled     */
+    __builtin_enable_interrupts();
+     
+     
     while ( 1 )
     {
-        /* Blink LED1, LED2 and LED3    */
-        PORTEINV   = ( LED1 | LED2 | LED3 );
-        for ( i = 0UL; i < 0x23232; i++ );
+        /* uC in low power mode: Idle Mode     */
+        asm volatile ( "wait" );
+        
+        /* Check the next action     */
+        if ( changeLEDstate == 1UL )
+        {
+            /* Blink LED1, LED2 and LED3    */
+            PORTEINV   = ( LED1 | LED2 | LED3 );
+            
+            /* Reset variable    */
+            changeLEDstate   =   0UL;
+        }        
     }
 }
