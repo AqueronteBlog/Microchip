@@ -34,7 +34,7 @@ extern "C" {
 
 /**@brief Variables.
  */
-
+extern volatile uint32_t changeLEDstate;
 
 
 #ifdef __cplusplus
