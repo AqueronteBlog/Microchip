@@ -1,7 +1,7 @@
 /**
  * @brief       main.c
- * @details     [TOOD] This project shows how to work with the internal peripherals GPIO. All the LEDs ( LED1, LED2 and
- *              LED3 ) blink for a period of time.
+ * @details     This project shows how to work with the internal peripherals Timer1. All the LEDs ( LED1, LED2 and
+ *              LED3 ) blink every 1 second.
  *
  *
  * @return      N/A
