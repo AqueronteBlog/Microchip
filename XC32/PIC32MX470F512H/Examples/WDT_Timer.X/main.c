@@ -42,9 +42,9 @@ void main ( void )
     uint32_t    i   =   0UL;
     
     /* Configure the peripherals*/
-    conf_CLK    ();
-    conf_GPIO   ();
-    conf_Timers ();    
+    conf_CLK        ();
+    conf_GPIO       ();
+    conf_WDT_Timer  ();    
     
     /* All interrupts are enabled     */
     __builtin_enable_interrupts();
