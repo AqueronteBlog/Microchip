@@ -14,3 +14,6 @@ XC32/PIC32MX470F512H/Examples/Timers.X/dist/default/production/
 XC32/PIC32MX470F512H/Examples/LED/LED.X/.generated_files/
 XC32/PIC32MX470F512H/Examples/Timers.X/build/
 XC32/PIC32MX470F512H/Examples/Timers.X/dist/default/debug/
+XC32/PIC32MX470F512H/Examples/WDT_Timer.X/.generated_files/
+XC32/PIC32MX470F512H/Examples/WDT_Timer.X/build/
+XC32/PIC32MX470F512H/Examples/WDT_Timer.X/dist/default/production/
