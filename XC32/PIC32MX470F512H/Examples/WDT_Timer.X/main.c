@@ -1,7 +1,7 @@
 /**
  * @brief       main.c
- * @details     [TODO]This project shows how to work with the internal peripherals WDT timer. All the LEDs ( LED1, LED2 and
- *              LED3 ) blink every 1 second.
+ * @details     This project shows how to work with the internal peripherals WDT as a timer. All the LEDs ( LED1, LED2 and
+ *              LED3 ) blink every 1.024 second.
  *
  *
  * @return      N/A
@@ -39,21 +39,22 @@ volatile uint32_t changeLEDstate     =   0UL;       /*!< Flag to change the stat
  */
 void main ( void ) 
 {
-    uint32_t    i   =   0UL;
-    
     /* Configure the peripherals*/
     conf_CLK        ();
     conf_GPIO       ();
     conf_WDT_Timer  ();    
     
-    /* All interrupts are enabled     */
-    __builtin_enable_interrupts();
-     
-     
+
     while ( 1 )
     {
-        /* uC in low power mode: Idle Mode     */
-        asm volatile ( "wait" );
+        /* WDT enabled  */
+        WDTCONbits.ON   =   1UL;
+        
+        /* Perform a dummy instruction before WAIT instruction*/
+        asm volatile ( "NOP" );
+        
+        /* uC in low power mode: Sleep Mode     */
+        asm volatile ( "WAIT" );
         
         /* Check the next action     */
         if ( changeLEDstate == 1UL )
