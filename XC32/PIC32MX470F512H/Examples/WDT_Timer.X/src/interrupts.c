@@ -14,24 +14,26 @@
 
 
 /**
- * @brief       void T1Interrupt ()
- * @details     Timer interruption. 
+ * @brief       void _nmi_handler ()
+ * @details     Non-maskable Interrupt (NMI) handler. 
  *
  *
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        08/December/2021
- * @version     08/December/2021   The ORIGIN
+ * @date        13/January/2022
+ * @version     13/January/2022   The ORIGIN
  * @pre         N/A.
  * @warning     N/A
  */
-void __attribute__ ( ( vector(_TIMER_1_VECTOR), interrupt(IPL3SOFT) ) ) T1Handler ( void )
+void __attribute__((nomips16)) _nmi_handler(void)
 {
-    /* Execute new action    */
-    changeLEDstate   =   1UL;
-    
-    
-    /* Clear the Timer1 interrupt status flag ( T1IF )     */
-    IFS0CLR  =   0x00000010;
+    /* Check the Watchdog Timer Time-out Flag bit and the device was in Sleep mode */
+    if ( ( RCONbits.WDTO == 1UL ) && ( RCONbits.SLEEP == 1UL ) )
+    {
+        changeLEDstate = 1UL;
+        
+        /* Return from interrupt    */
+        asm volatile ( "ERET" );
+    }    
 }
