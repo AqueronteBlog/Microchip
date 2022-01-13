@@ -29,7 +29,8 @@
  *
  * @author      Manuel Caballero
  * @date        12/January/2022
- * @version     12/January/2022      The ORIGIN
+ * @version     13/January/2022      Sleep mode instead of Idle mode.
+ *              12/January/2022      The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -57,8 +58,8 @@ void conf_CLK  ( void )
     /* PBCLK is SYSCLK divided by 1 */
     OSCCONbits.PBDIV    =   0b00;
     
-    /* Device will enter Idle mode when a WAIT instruction is executed */
-    OSCCONbits.SLPEN    =   0UL;    
+    /* Device will enter Sleep mode when a WAIT instruction is executed */
+    OSCCONbits.SLPEN    =   1UL;    
     
     SYSKEY  =    0x33333333;    // Force lock
 }
@@ -122,5 +123,14 @@ void conf_GPIO  ( void )
  */
 void conf_WDT_Timer  ( void )
 {
+    /* WDT disabled */
+    WDTCONbits.ON   =   0UL;
     
+    /* Disable windowed Watchdog Timer */
+    WDTCONbits.WDTWINEN =   0UL;
+    
+    /* Clear the WDT and wait until it is cleared */
+    WDTCONbits.WDTCLR   =   1UL;
+    while ( WDTCONbits.WDTCLR == 1UL ); // [TODO]       Too dangerous!!! The uC may get stuck here
+                                        // [WORKAROUND] Insert a counter
 }
