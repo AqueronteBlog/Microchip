@@ -34,8 +34,8 @@ extern "C" {
 
 /**@brief Variables.
  */
-extern volatile uint32_t changeLEDstate;
-
+extern volatile uint32_t myState;
+extern volatile uint8_t  *myPtr;
 
 #ifdef __cplusplus
 }
