@@ -27,43 +27,103 @@
 
 /**@brief Constants.
  */
+#define TX_BUFF_SIZE    64                    /*!<   UART buffer size                                       */
 
+#define SYSCLK          8000000
+#define PBCLK           SYSCLK
+
+#define UART1_BAUDRATE  115200
 
 
 /**@brief Variables.
  */
-volatile uint32_t changeLEDstate     =   0UL;       /*!< Flag to change the state of the LEDs     */
+volatile uint32_t  myState	 =	 0U;		/*!<   State that indicates when to perform the next action   */
+volatile uint8_t  *myPtr;                   /*!<   Pointer to point out myMessage                         */
 
 
 /**@brief Function for application main entry.
  */
 void main ( void ) 
 {
+    uint8_t  myMessage[ TX_BUFF_SIZE ];
+    
+    /* Initialized the message	 */
+	myMessage[ 0 ]   =  'L';
+	myMessage[ 1 ]   =  'E';
+	myMessage[ 2 ]   =  'D';
+	myMessage[ 3 ]   =  ' ';
+	myMessage[ 4 ]   =  ' ';
+	myMessage[ 11 ]  =  '\n';
+    
+    
     /* Configure the peripherals*/
-    conf_CLK        ();
-    conf_GPIO       ();
-    conf_WDT_Timer  ();    
+    conf_CLK    ();
+    conf_GPIO   ();
+    conf_UART1  ( PBCLK, UART1_BAUDRATE );    
     
 
     while ( 1 )
     {
-        /* WDT enabled  */
-        WDTCONbits.ON   =   1UL;
-        
         /* Perform a dummy instruction before WAIT instruction*/
         asm volatile ( "NOP" );
         
         /* uC in low power mode: Sleep Mode     */
         asm volatile ( "WAIT" );
         
-        /* Check the next action     */
-        if ( changeLEDstate == 1UL )
-        {
-            /* Blink LED1, LED2 and LED3    */
-            PORTEINV   = ( LED1 | LED2 | LED3 );
+        if ( myState != 0U )
+		{
+			/* Initialized the message	 */
+			myMessage[ 5 ]   =  'T';
+			myMessage[ 6 ]   =  'O';
+			myMessage[ 7 ]   =  'G';
+			myMessage[ 8 ]   =  'G';
+			myMessage[ 9 ]   =  'L';
+			myMessage[ 10 ]  =  'E';
+
+			switch ( myState )
+			{
+				case '1':
+					/* Toggle LED1	 */
+					PORTEINV   = LED1;
+					myMessage [ 3 ]	 =	 '1';
+					break;
+
+				case '2':
+					/* Toggle LED2	 */
+					PORTEINV   = LED2;
+					myMessage [ 3 ]	 =   '2';
+					break;
+
+				case '3':
+					/* Toggle LED3	 */
+					PORTEINV   = LED3;
+					myMessage [ 3 ]	 =   '3';
+					break;
+
+				default:
+					/* All LEDs off	 */
+					PORTESET   |=   ( LED1 | LED2 | LED3 );  
+
+					/* Initialized the message	 */
+					myMessage[ 3 ]   =  ' ';
+					myMessage[ 5 ]   =  'E';
+					myMessage[ 6 ]   =  'R';
+					myMessage[ 7 ]   =  'R';
+					myMessage[ 8 ]   =  'O';
+					myMessage[ 9 ]   =  'R';
+					myMessage[ 10 ]  =  '!';
+					break;
+			}
             
-            /* Reset variable    */
-            changeLEDstate   =   0UL;
-        }        
+            /* Transmit data back	 */
+			myPtr    =   &myMessage[0];
+			U1TXREG	 =	 *myPtr;
+
+			/* Transmit Buffer Empty Interrupt: Enabled	 */
+			U1STAbits.UTXEN = 1UL;
+
+			/* Reset variables	 */
+			myState	 =	 0U;
+        }
     }
 }
