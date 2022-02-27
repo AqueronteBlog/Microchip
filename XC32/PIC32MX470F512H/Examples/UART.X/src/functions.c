@@ -99,15 +99,11 @@ void conf_GPIO  ( void )
 
 
 /**
- * @brief       void conf_WDT_Timer  ( void )
- * @details     It configures the WDT in Timer mode.
- *              
- *              WDT (Timer mode):
- *                  - Prescaler: 256 (f_timer = 8MHz/256 = 31250Hz)
- *                  - Overflow: 1s ( 31250 * ( 1 / 31250Hz ) = 1s )
- *                  - Interrupt enabled
+ * @brief       void conf_UART1  ( uint32_t , uint32_t )
+ * @details     It configures the UART1.
  *
- * @param[in]    N/A.
+ * @param[in]    f_pb:      UART clock.
+ * @param[in]    baudrate:  UART baud rate.
  *
  * @param[out]   N/A.
  *
@@ -120,16 +116,90 @@ void conf_GPIO  ( void )
  * @pre         N/A
  * @warning     N/A
  */
-void conf_WDT_Timer  ( void )
+void conf_UART1  ( uint32_t f_pb, uint32_t baudrate )
 {
-    /* WDT disabled */
-    WDTCONbits.ON   =   0UL;
+    /* UART disabled */
+    U1MODEbits.ON   =   0UL;
     
-    /* Disable windowed Watchdog Timer */
-    WDTCONbits.WDTWINEN =   0UL;
+    /* Continue operation in Idle mode */
+    U1MODEbits.SIDL =   0UL;
     
-    /* Clear the WDT and wait until it is cleared */
-    WDTCONbits.WDTCLR   =   1UL;
-    while ( WDTCONbits.WDTCLR == 1UL ); // [TODO]       Too dangerous!!! The uC may get stuck here
-                                        // [WORKAROUND] Insert a counter
+    /* IrDA is disabled */
+    U1MODEbits.IREN =   0UL;
+    
+    /* U1TX and U1RX pins are enabled and used only */
+    U1MODEbits.UEN = 0b00;
+    
+    /* Wake-up is enabled */
+    U1MODEbits.WAKE = 1UL;
+    
+    /* Loopback mode is disabled */
+    U1MODEbits.LPBACK = 0UL;
+    
+    /* Baud rate measurement disabled or completed */
+    U1MODEbits.ABAUD = 0UL;
+    
+    /* U1RX Idle state is '1' */
+    U1MODEbits.RXINV = 0UL;
+    
+    /* High-Speed mode ? 4x baud clock enable */
+    U1MODEbits.BRGH = 1UL;
+    
+    /* 8-bit data, no parity */
+    U1MODEbits.PDSEL = 0b00;
+    
+    /* 1 Stop bit */
+    U1MODEbits.STSEL = 0UL;
+    
+    /* Automatic Address Detect mode is disabled */
+    U1STAbits.ADM_EN = 0UL;
+    
+    /* Interrupt is generated and asserted when all characters have been transmitted */
+    U1STAbits.UTXISEL = 0b01;
+    
+    /* U1TX Idle state is '1' */
+    U1STAbits.UTXINV = 0UL;
+    
+    /* UART1 receiver is enabled */
+    U1STAbits.URXEN = 1UL;
+    
+    /* Break transmission is disabled or completed */
+    U1STAbits.UTXBRK = 0UL;
+    
+    /* UART1 transmitter is disabled */
+    U1STAbits.UTXEN = 0UL;
+    
+    /* Interrupt flag bit is asserted while receive buffer is not empty */
+    U1STAbits.URXISEL = 0b00;
+    
+    /* Address Detect mode is disabled */
+    U1STAbits.ADDEN = 0UL;
+    
+    /* Calculate the desired baud rate */
+    if ( U1MODEbits.BRGH == 0UL )
+    {
+        U1BRG = ( f_pb / ( 16UL * baudrate ) ) - 1UL;
+    }
+    else
+    {
+        U1BRG = ( f_pb / ( 4UL * baudrate ) ) - 1UL;
+    } 
+    
+    /* UART1: Interrupt priority is 3   */
+    IPC7bits.U1IP   =   0b011;
+    
+    /* UART1: Interrupt subpriority is 1   */
+    IPC7bits.U1IS   =   0b01;
+    
+    /* Clear the UART1 interrupt status flag ( U1IF )     */
+    IFS1CLR  =   0x00000180;
+    
+    /* Enable UART1 interrupts ( U1IF )     */
+    IEC1SET  =   0x00000180;
+    
+    /* Interrupt controller configured for multivectored vectored mode     */
+    INTCONbits.MVEC =   1UL;
+    
+    /* UART enabled */
+    U1MODEbits.ON   =   1UL;
 }

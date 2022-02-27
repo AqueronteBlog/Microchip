@@ -23,9 +23,9 @@ extern "C" {
 
 /**@brief Function prototypes.
  */
-void conf_CLK       ( void );
-void conf_GPIO      ( void );
-void conf_WDT_Timer ( void );
+void conf_CLK   ( void );
+void conf_GPIO  ( void );
+void conf_UART1 ( uint32_t f_pb, uint32_t baudrate );
 
 /**@brief Constants.
  */
