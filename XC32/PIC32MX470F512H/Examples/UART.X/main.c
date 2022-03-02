@@ -1,7 +1,11 @@
 /**
  * @brief       main.c
- * @details     [TODO]This project shows how to work with the internal peripherals WDT as a timer. All the LEDs ( LED1, LED2 and
- *              LED3 ) blink every 1.024 second.
+ * @details     This project shows how to work with the internal peripherals UART at 115200 baud rate. 
+ *              The LEDs will change if the user sends through the UART the following code:
+ *                  1 --> LED1 changes its status.
+ *                  2 --> LED2 changes its status.
+ *                  3 --> LED3 changes its status.
+ *                  Other --> All lEDs are off
  *
  *
  * @return      N/A
@@ -61,13 +65,15 @@ void main ( void )
     conf_GPIO   ();
     conf_UART1  ( PBCLK, UART1_BAUDRATE );    
     
-
+     /* All interrupts are enabled     */
+    __builtin_enable_interrupts();
+    
     while ( 1 )
     {
         /* Perform a dummy instruction before WAIT instruction*/
         asm volatile ( "NOP" );
         
-        /* uC in low power mode: Sleep Mode     */
+        /* uC in low power mode: Idle Mode     */
         asm volatile ( "WAIT" );
         
         if ( myState != 0U )
@@ -102,7 +108,7 @@ void main ( void )
 
 				default:
 					/* All LEDs off	 */
-					PORTESET   |=   ( LED1 | LED2 | LED3 );  
+					PORTECLR   |=   ( LED1 | LED2 | LED3 );  
 
 					/* Initialized the message	 */
 					myMessage[ 3 ]   =  ' ';
