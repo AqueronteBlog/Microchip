@@ -62,7 +62,7 @@ extern "C" {
 #pragma config FWDTWINSZ = WINSZ_25     // Watchdog Timer Window Size (Window Size is 25%)
 
 // DEVCFG0
-#pragma config DEBUG = OFF              // Background Debugger Disable (Debugger is Disabled)
+#pragma config DEBUG = OFF              // Background Debugger Disabled (Debugger is Disabled)
 #pragma config JTAGEN = ON              // JTAG Enable (JTAG Port Enabled)
 #pragma config ICESEL = ICS_PGx2        // ICE/ICD Comm Channel Select (Communicate on PGEC2/PGED2)
 #pragma config PWP = OFF                // Program Flash Write Protect (Disable)
@@ -70,7 +70,7 @@ extern "C" {
 #pragma config CP = OFF                 // Code Protect (Protection Disabled)
 
 // #pragma config statements should precede project file includes.
-// Use project enums instead of #define for ON and OFF.   
+// Use project enums instead of #define for ON and OFF.
 
  
 
