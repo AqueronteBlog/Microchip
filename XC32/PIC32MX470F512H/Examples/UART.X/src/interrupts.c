@@ -29,17 +29,22 @@
 void __attribute__ ( ( vector(_UART_1_VECTOR), interrupt(IPL3SOFT) ) ) U1Handler ( void )
 {
     /* Rx	 */
-	if ( U1STAbits.URXDA == 1UL )
+	if ( ( U1STAbits.URXDA == 1UL ) && ( U1STAbits.URXEN == 1UL ) )
 	{
         while( U1STAbits.RIDLE == 0UL );
         
 		/* Next action	 */
 		myState	 =	 (uint8_t)( U1RXREG );
+        
+        /* Clear Interrupt (IFS1<7>)  */
+        IFS1CLR |=  ( 1UL << 7UL );  
 	}
 
 	/* Tx	 */
-	if ( U1STAbits.TRMT == 1UL )
+	if ( U1STAbits.UTXEN == 1UL )
 	{
+        while( U1STAbits.TRMT == 0UL );
+        
 		/* Stop transmitting data when that character is found */
 		if ( *myPtr  == '\n' )
 		{
@@ -49,9 +54,8 @@ void __attribute__ ( ( vector(_UART_1_VECTOR), interrupt(IPL3SOFT) ) ) U1Handler
 		{
 			U1TXREG	 =	 *++myPtr;
 		}
+        
+        /* Clear Interrupt (IFS1<8>)  */
+        IFS1CLR |=  ( 1UL << 8UL );
 	}
-    
-    
-    /* Clear the UART1 interrupt status flag ( U1IF )     */
-    IFS1CLR  =   0x00000180;
 }
