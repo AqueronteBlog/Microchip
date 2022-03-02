@@ -57,8 +57,8 @@ void conf_CLK  ( void )
     /* PBCLK is SYSCLK divided by 1 */
     OSCCONbits.PBDIV    =   0b00;
     
-    /* Device will enter Sleep mode when a WAIT instruction is executed */
-    OSCCONbits.SLPEN    =   1UL;    
+    /* Device will enter Idle mode when a WAIT instruction is executed */
+    OSCCONbits.SLPEN    =   0UL;    
     
     SYSKEY  =    0x33333333;    // Force lock
 }
@@ -73,6 +73,10 @@ void conf_CLK  ( void )
  *                  - LED1: RE4 (Digital output)
  *                  - LED2: RE6 (Digital output)
  *                  - LED3: RE7 (Digital output)
+ * 
+ *              UART1
+ *                  - Tx: RPF0
+ *                  - Rx: RPF1
  *
  * @param[in]    N/A.
  *
@@ -83,7 +87,8 @@ void conf_CLK  ( void )
  *
  * @author      Manuel Caballero
  * @date        27/February/2022
- * @version     27/February/2022      The ORIGIN
+ * @version     02/March/2022       UART pins were added
+ *              27/February/2022    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -93,7 +98,21 @@ void conf_GPIO  ( void )
     TRISECLR   |=   ( LED1 | LED2 | LED3 );
     
     /* Reset value of the LEDs = OFF */
-    PORTESET   |=   ( LED1 | LED2 | LED3 );  
+    PORTECLR   |=   ( LED1 | LED2 | LED3 );  
+    
+    /* Set UART1 pins: U1TX (RPF0) and U1RX (RPF1)   */
+    SYSKEY  =    0x00000000;    // Force lock
+    SYSKEY  =    0xAA996655;    // Unlock registers    
+    SYSKEY  =    0x556699AA;
+    
+    CFGCONbits.IOLOCK   =   0UL;
+    
+    RPF0Rbits.RPF0R =   0b0011;
+    U1RXRbits.U1RXR =   0b0100;  
+    
+    CFGCONbits.IOLOCK   =   1UL;
+    
+    SYSKEY  =    0x33333333;    // Force lock
 }
 
 
@@ -195,7 +214,8 @@ void conf_UART1  ( uint32_t f_pb, uint32_t baudrate )
     IFS1CLR  =   0x00000180;
     
     /* Enable UART1 interrupts ( U1IF )     */
-    IEC1SET  =   0x00000180;
+    IEC1bits.U1RXIE = 1UL;
+    IEC1bits.U1TXIE = 1UL;
     
     /* Interrupt controller configured for multivectored vectored mode     */
     INTCONbits.MVEC =   1UL;
