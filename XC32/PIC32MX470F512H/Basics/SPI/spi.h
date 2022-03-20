@@ -14,8 +14,7 @@
  * @pre         This code belongs to AqueronteBlog ( http://unbarquero.blogspot.com ).
  */
 
-#include "nrf.h"
-#include "nrf52_bitfields.h"
+#include <xc.h>
 
 
 #ifndef SPI_H_
@@ -82,10 +81,10 @@ typedef enum
   */
 typedef struct{
     /* Port for pins: MOSI, MISO, SCLK and CS */
-    NRF_GPIO_Type* MOSIport;
-    NRF_GPIO_Type* MISOport;
-    NRF_GPIO_Type* SCLKport;
-    NRF_GPIO_Type* CSport;
+    //NRF_GPIO_Type* MOSIport;
+    //NRF_GPIO_Type* MISOport;
+    //NRF_GPIO_Type* SCLKport;
+    //NRF_GPIO_Type* CSport;
 
     /* Pin number */
     uint32_t MOSI;
@@ -103,11 +102,11 @@ typedef struct{
     spi_cs_enable_line_t SPIenable_line_mode;
 
     /* SPI Byte order */
-    spi_byte_order_t SPIbyte_order;
+    //spi_byte_order_t SPIbyte_order;
 
     /* SPI instance */
-    NRF_SPI_Type* SPIinstance;
-} SPI_parameters_t;
+    //NRF_SPI_Type* SPIinstance;
+} spi_parameters_t;
 
 
 
@@ -115,8 +114,8 @@ typedef struct{
 /**
   * @brief   FUNCTION PROTOTYPES
   */
-spi_status_t    spi_transfer    ( SPI_parameters_t mySPIparameters, uint8_t* spi_tx_buff, uint32_t spi_tx_length, uint8_t* spi_rx_buff, uint32_t spi_rx_length );
-spi_status_t    spi_init        ( SPI_parameters_t mySPIparameters );
+spi_status_t    spi_transfer    ( spi_parameters_t mySPIparameters, uint8_t* spi_tx_buff, uint32_t spi_tx_length, uint8_t* spi_rx_buff, uint32_t spi_rx_length );
+spi_status_t    spi_init        ( spi_parameters_t mySPIparameters );
 
 
 #ifdef __cplusplus
