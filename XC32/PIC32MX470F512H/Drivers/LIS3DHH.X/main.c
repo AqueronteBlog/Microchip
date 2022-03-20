@@ -127,7 +127,7 @@ void main ( void )
 
 			/* Transmit Buffer Empty Interrupt: Enabled	 */
 			U1STAbits.UTXEN = 1UL;
-
+            
 			/* Reset variables	 */
 			myState	 =	 0U;
         }
