@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c src/functions.c src/interrupts.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c ../../Basics/SPI/spi.c ../../../../../Drivers/LIS3DHH/LIS3DHH.c src/functions.c src/interrupts.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/src/functions.o ${OBJECTDIR}/src/interrupts.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/src/functions.o.d ${OBJECTDIR}/src/interrupts.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/308522942/spi.o ${OBJECTDIR}/_ext/329170612/LIS3DHH.o ${OBJECTDIR}/src/functions.o ${OBJECTDIR}/src/interrupts.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/_ext/308522942/spi.o.d ${OBJECTDIR}/_ext/329170612/LIS3DHH.o.d ${OBJECTDIR}/src/functions.o.d ${OBJECTDIR}/src/interrupts.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/src/functions.o ${OBJECTDIR}/src/interrupts.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/_ext/308522942/spi.o ${OBJECTDIR}/_ext/329170612/LIS3DHH.o ${OBJECTDIR}/src/functions.o ${OBJECTDIR}/src/interrupts.o
 
 # Source Files
-SOURCEFILES=main.c src/functions.c src/interrupts.c
+SOURCEFILES=main.c ../../Basics/SPI/spi.c ../../../../../Drivers/LIS3DHH/LIS3DHH.c src/functions.c src/interrupts.c
 
 
 
@@ -113,6 +113,18 @@ ${OBJECTDIR}/main.o: main.c  .generated_files/flags/default/a6aab144e91bfdfa8008
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/_ext/308522942/spi.o: ../../Basics/SPI/spi.c  .generated_files/flags/default/1a42993fa30b35f7823960470afabb695f81b3ba .generated_files/flags/default/25cf332145e109ecc94cb8c88ed46e464b66686
+	@${MKDIR} "${OBJECTDIR}/_ext/308522942" 
+	@${RM} ${OBJECTDIR}/_ext/308522942/spi.o.d 
+	@${RM} ${OBJECTDIR}/_ext/308522942/spi.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/_ext/308522942/spi.o.d" -o ${OBJECTDIR}/_ext/308522942/spi.o ../../Basics/SPI/spi.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/_ext/329170612/LIS3DHH.o: ../../../../../Drivers/LIS3DHH/LIS3DHH.c  .generated_files/flags/default/bf2233fa5cb7ea25b51a6d703d87eedbc75d605 .generated_files/flags/default/25cf332145e109ecc94cb8c88ed46e464b66686
+	@${MKDIR} "${OBJECTDIR}/_ext/329170612" 
+	@${RM} ${OBJECTDIR}/_ext/329170612/LIS3DHH.o.d 
+	@${RM} ${OBJECTDIR}/_ext/329170612/LIS3DHH.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/_ext/329170612/LIS3DHH.o.d" -o ${OBJECTDIR}/_ext/329170612/LIS3DHH.o ../../../../../Drivers/LIS3DHH/LIS3DHH.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 ${OBJECTDIR}/src/functions.o: src/functions.c  .generated_files/flags/default/9e3b02afb46c8295c82435753f86e1752784406c .generated_files/flags/default/25cf332145e109ecc94cb8c88ed46e464b66686
 	@${MKDIR} "${OBJECTDIR}/src" 
 	@${RM} ${OBJECTDIR}/src/functions.o.d 
@@ -131,6 +143,18 @@ ${OBJECTDIR}/main.o: main.c  .generated_files/flags/default/be3ca8cdb35609c55e8f
 	@${RM} ${OBJECTDIR}/main.o.d 
 	@${RM} ${OBJECTDIR}/main.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/_ext/308522942/spi.o: ../../Basics/SPI/spi.c  .generated_files/flags/default/ec32d5f6aecfbdeb463402e931ff2f2b2affa02f .generated_files/flags/default/25cf332145e109ecc94cb8c88ed46e464b66686
+	@${MKDIR} "${OBJECTDIR}/_ext/308522942" 
+	@${RM} ${OBJECTDIR}/_ext/308522942/spi.o.d 
+	@${RM} ${OBJECTDIR}/_ext/308522942/spi.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/_ext/308522942/spi.o.d" -o ${OBJECTDIR}/_ext/308522942/spi.o ../../Basics/SPI/spi.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/_ext/329170612/LIS3DHH.o: ../../../../../Drivers/LIS3DHH/LIS3DHH.c  .generated_files/flags/default/9c62031b2e1c8c5d982277018b7305eeab8edeea .generated_files/flags/default/25cf332145e109ecc94cb8c88ed46e464b66686
+	@${MKDIR} "${OBJECTDIR}/_ext/329170612" 
+	@${RM} ${OBJECTDIR}/_ext/329170612/LIS3DHH.o.d 
+	@${RM} ${OBJECTDIR}/_ext/329170612/LIS3DHH.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -MP -MMD -MF "${OBJECTDIR}/_ext/329170612/LIS3DHH.o.d" -o ${OBJECTDIR}/_ext/329170612/LIS3DHH.o ../../../../../Drivers/LIS3DHH/LIS3DHH.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
 ${OBJECTDIR}/src/functions.o: src/functions.c  .generated_files/flags/default/8c38c791d362952d4631cc4495ffee9c9ce05df1 .generated_files/flags/default/25cf332145e109ecc94cb8c88ed46e464b66686
 	@${MKDIR} "${OBJECTDIR}/src" 

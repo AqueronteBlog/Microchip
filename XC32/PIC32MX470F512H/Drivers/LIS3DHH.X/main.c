@@ -11,8 +11,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero (aqueronteblog@gmail.com)
- * @date        27/February/2022
- * @version     27/February/2022    The ORIGIN
+ * @date        19/March/2022
+ * @version     19/March/2022    The ORIGIN
  * @pre         This firmware was tested on the PIC32MX470 Curiosity Development Board with MPLAB X IDE v5.50.
  * @warning     N/A.
  * @pre         This code belongs to AqueronteBlog. 
@@ -27,7 +27,7 @@
 #include "inc/variables.h"
 #include "inc/functions.h"
 #include "inc/interrupts.h"
-
+#include "D:\Workspaces\Personal\Drivers\LIS3DHH\LIS3DHH.h"
 
 /**@brief Constants.
  */
