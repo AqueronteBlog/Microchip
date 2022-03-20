@@ -1,17 +1,20 @@
 /**
  * @brief       spi.h
- * @details     NRF52 SPI function libraries.
+ * @details     PIC32MX470 SPI function libraries.
  *              Header file.
  *
  *
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        26/April/2019
- * @version     26/April/2019    The ORIGIN
+ * @date        20/May/2022
+ * @version     20/May/2022    The ORIGIN
  * @pre         N/A
- * @warning     This file is ONLY for NRF52 device.
- * @pre         This code belongs to AqueronteBlog ( http://unbarquero.blogspot.com ).
+ * @warning     This file is ONLY for PIC32MX470 device.
+ * @pre         This code belongs to AqueronteBlog. 
+ *                  - GitHub:  https://github.com/AqueronteBlog
+ *                  - YouTube: https://www.youtube.com/user/AqueronteBlog
+ *                  - Twitter: https://twitter.com/aqueronteblog
  */
 
 #include <xc.h>
@@ -85,7 +88,7 @@ typedef struct{
     //NRF_GPIO_Type* MISOport;
     //NRF_GPIO_Type* SCLKport;
     //NRF_GPIO_Type* CSport;
-
+    
     /* Pin number */
     uint32_t MOSI;
     uint32_t MISO;
