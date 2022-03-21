@@ -79,8 +79,6 @@ spi_status_t    spi_transfer ( spi_parameters_t mySPIparameters, uint8_t* spi_tx
  */
 spi_status_t    spi_init     ( spi_parameters_t mySPIparameters )
 {
-    uint8_t mySPI_ByteOrder     =   0;
-    
     /* SPI1 Disabled     */
     SPI1CONbits.ON  =   0UL;
     
@@ -162,8 +160,24 @@ spi_status_t    spi_init     ( spi_parameters_t mySPIparameters )
     /* Interrupt is generated when the buffer is not empty   */
     SPI1CONbits.SRXISEL   =   0b01;
 
+    /* Data from RX FIFO is not sign extended   */
+    SPI1CON2bits.SPISGNEXT   =   0UL;
     
+    /* Frame Error does not generate error events   */
+    SPI1CON2bits.FRMERREN   =   0UL;
     
+    /* Receive overflow does not generate error events   */
+    SPI1CON2bits.SPIROVEN   =   0UL;
+    
+    /* Transmit Underrun Does Not Generates Error Events   */
+    SPI1CON2bits.SPITUREN   =   0UL;
+    
+    /* Audio protocol is disabled   */
+    SPI1CON2bits.AUDEN   =   0UL;
+    
+    /* Audio protocol is disabled   */
+    SPI1CON2bits.AUDEN   =   0UL;
+        
     
     return SPI_SUCCESS;
 }
