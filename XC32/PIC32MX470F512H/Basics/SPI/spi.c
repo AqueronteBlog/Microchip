@@ -73,111 +73,126 @@ spi_status_t    spi_transfer ( spi_parameters_t mySPIparameters, uint8_t* spi_tx
  *
  * @author      Manuel Caballero
  * @date        20/May/2022
- * @version     20/May/2022      The ORIGIN
+ * @version     24/May/2022      SPI1 clock was defined.
+ *              20/May/2022      The ORIGIN
  * @pre         N/A.
  * @warning     N/A.
  */
 spi_status_t    spi_init     ( spi_parameters_t mySPIparameters )
 {
+    float f_sck_max = ( mySPIparameters.freq_sck / 2.0 );
+    float f_sck_min = ( mySPIparameters.freq_sck / 1024.0 );
+    
     /* SPI1 Disabled     */
     SPI1CONbits.ON  =   0UL;
     
-    /* Framed SPI support is enabled    */
-    SPI1CONbits.FRMEN   =   1UL;
-    
-    /* Frame sync pulse output (Master mode)    */
-    SPI1CONbits.FRMSYNC   =   0UL;
-    
-    /* Frame Sync Polarity bit    */
-    if ( mySPIparameters.SPIenable_line_mode == SPI_ENABLE_LINE_HIGH )
+    /* Check SPI frequency   */
+    if ( ( mySPIparameters.spi_freq > f_sck_max ) || ( mySPIparameters.spi_freq < f_sck_min ) )
     {
-        SPI1CONbits.FRMPOL   =   1UL;
+        return SPI_CLK_ERROR;
     }
     else
     {
-        SPI1CONbits.FRMPOL   =   0UL;
-    }
+        /* Calculate SPI frequency   */
+        SPI1BRG  =   ( mySPIparameters.spi_freq / ( mySPIparameters.freq_sck * 2U ) ) - 1U;    
+        
+        /* Framed SPI support is enabled    */
+        SPI1CONbits.FRMEN   =   1UL;
     
-    /* Slave select SPI support enabled    */
-    SPI1CONbits.MSSEN   =   1UL;
+        /* Frame sync pulse output (Master mode)    */
+        SPI1CONbits.FRMSYNC   =   0UL;
     
-    /* Frame sync pulse is one clock wide    */
-    SPI1CONbits.FRMSYPW   =   0UL;
+        /* Frame Sync Polarity bit    */
+        if ( mySPIparameters.spi_enable_line_mode == SPI_ENABLE_LINE_HIGH )
+        {
+            SPI1CONbits.FRMPOL   =   1UL;
+        }
+        else
+        {
+            SPI1CONbits.FRMPOL   =   0UL;
+        }
     
-    /* Generate a frame sync pulse on every data character    */
-    SPI1CONbits.FRMCNT   =   0b000;
+        /* Slave select SPI support enabled    */
+        SPI1CONbits.MSSEN   =   1UL;
     
-    /* PBCLK is used by the Baud Rate Generator    */
-    SPI1CONbits.MCLKSEL   =   0UL;
+        /* Frame sync pulse is one clock wide    */
+        SPI1CONbits.FRMSYPW   =   0UL;
     
-    /* Continue operation in Idle mode    */
-    SPI1CONbits.SIDL   =   0UL;
+        /* Generate a frame sync pulse on every data character    */
+        SPI1CONbits.FRMCNT   =   0b000;
     
-    /* SDO1 pin is controlled by the module    */
-    SPI1CONbits.DISSDO   =   0UL;
+        /* PBCLK is used by the Baud Rate Generator    */
+        SPI1CONbits.MCLKSEL   =   0UL;
     
-    /* 8-bit Communication    */
-    SPI1CONbits.MODE32   =   0UL;
-    SPI1CONbits.MODE16   =   0UL;
+        /* Continue operation in Idle mode    */
+        SPI1CONbits.SIDL   =   0UL;
     
-    /* Input data sampled at middle of data output time    */
-    SPI1CONbits.SMP   =   0UL;
+        /* SDO1 pin is controlled by the module    */
+        SPI1CONbits.DISSDO   =   0UL;
     
-    /* SPI mode: CPOL and CPHA     */
-    switch( mySPIparameters.SPImode )
-    {
-        default:
-        case SPI_MODE_0:
-            SPI1CONbits.CKE   =   1UL;
-            SPI1CONbits.CKP   =   0UL;
-            break;
+        /* 8-bit Communication    */
+        SPI1CONbits.MODE32   =   0UL;
+        SPI1CONbits.MODE16   =   0UL;
+    
+        /* Input data sampled at middle of data output time    */
+        SPI1CONbits.SMP   =   0UL;
+    
+        /* SPI mode: CPOL and CPHA     */
+        switch( mySPIparameters.spi_mode )
+        {
+            default:
+            case SPI_MODE_0:
+                SPI1CONbits.CKE   =   1UL;
+                SPI1CONbits.CKP   =   0UL;
+                break;
             
-        case SPI_MODE_1:
-            SPI1CONbits.CKE   =   0UL;
-            SPI1CONbits.CKP   =   0UL;
-            break;
+            case SPI_MODE_1:
+                SPI1CONbits.CKE   =   0UL;
+                SPI1CONbits.CKP   =   0UL;
+                break;
             
-        case SPI_MODE_2:
-            SPI1CONbits.CKE   =   1UL;
-            SPI1CONbits.CKP   =   1UL;
-            break;
+            case SPI_MODE_2:
+                SPI1CONbits.CKE   =   1UL;
+                SPI1CONbits.CKP   =   1UL;
+                break;
             
-        case SPI_MODE_3:
-            SPI1CONbits.CKE   =   0UL;
-            SPI1CONbits.CKP   =   1UL;
-            break;
-    }
+            case SPI_MODE_3:
+                SPI1CONbits.CKE   =   0UL;
+                SPI1CONbits.CKP   =   1UL;
+                break;
+        }
     
-    /* Master mode    */
-    SPI1CONbits.MSTEN   =   1UL;
+        /* Master mode    */
+        SPI1CONbits.MSTEN   =   1UL;
     
-    /* SDI pin is controlled by the SPI module    */
-    SPI1CONbits.DISSDI   =   0UL;
+        /* SDI pin is controlled by the SPI module    */
+        SPI1CONbits.DISSDI   =   0UL;
     
-    /* Interrupt is generated when the last transfer is shifted out of SPISR and transmit operations are complete   */
-    SPI1CONbits.STXISEL   =   0b00;
+        /* Interrupt is generated when the last transfer is shifted out of SPISR and transmit operations are complete   */
+        SPI1CONbits.STXISEL   =   0b00;
     
-    /* Interrupt is generated when the buffer is not empty   */
-    SPI1CONbits.SRXISEL   =   0b01;
+        /* Interrupt is generated when the buffer is not empty   */
+        SPI1CONbits.SRXISEL   =   0b01;
 
-    /* Data from RX FIFO is not sign extended   */
-    SPI1CON2bits.SPISGNEXT   =   0UL;
+        /* Data from RX FIFO is not sign extended   */
+        SPI1CON2bits.SPISGNEXT   =   0UL;
     
-    /* Frame Error does not generate error events   */
-    SPI1CON2bits.FRMERREN   =   0UL;
+        /* Frame Error does not generate error events   */
+        SPI1CON2bits.FRMERREN   =   0UL;
     
-    /* Receive overflow does not generate error events   */
-    SPI1CON2bits.SPIROVEN   =   0UL;
+        /* Receive overflow does not generate error events   */
+        SPI1CON2bits.SPIROVEN   =   0UL;
     
-    /* Transmit Underrun Does Not Generates Error Events   */
-    SPI1CON2bits.SPITUREN   =   0UL;
+        /* Transmit Underrun Does Not Generates Error Events   */
+        SPI1CON2bits.SPITUREN   =   0UL;
     
-    /* Audio protocol is disabled   */
-    SPI1CON2bits.AUDEN   =   0UL;
+        /* Audio protocol is disabled   */
+        SPI1CON2bits.AUDEN   =   0UL;
     
-    /* Audio protocol is disabled   */
-    SPI1CON2bits.AUDEN   =   0UL;
+        /* Audio protocol is disabled   */
+        SPI1CON2bits.AUDEN   =   0UL;
         
     
-    return SPI_SUCCESS;
+        return SPI_SUCCESS;
+    }
 }
