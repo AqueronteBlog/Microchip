@@ -73,8 +73,9 @@ typedef enum
   */
 typedef enum
 {
-    SPI_SUCCESS  =   0x00,
-    SPI_FAILURE  =   0x01
+    SPI_SUCCESS     =   0x00,
+    SPI_FAILURE     =   0x01,
+    SPI_CLK_ERROR   =   0x02
 } spi_status_t;
 
 
@@ -90,19 +91,22 @@ typedef struct{
     //NRF_GPIO_Type* CSport;
     
     /* Pin number */
-    uint32_t MOSI;
-    uint32_t MISO;
-    uint32_t SCLK;
-    uint32_t CS;
+    uint32_t mosi;
+    uint32_t miso;
+    uint32_t sclk;
+    uint32_t cs;
 
-    /* SPI frequency */
-    uint32_t Freq;
+    /* f_SCK frequency in Hz ( Clock frequency for SPI peripheral ) */
+    uint32_t freq_sck;
+    
+    /* SPI frequency in Hz */
+    uint32_t spi_freq;
 
     /* SPI Mode */
-    spi_modes_t SPImode;
+    spi_modes_t spi_mode;
 
     /* SPI Chip Select enable line mode */
-    spi_cs_enable_line_t SPIenable_line_mode;
+    spi_cs_enable_line_t spi_enable_line_mode;
 
     /* SPI Byte order */
     //spi_byte_order_t SPIbyte_order;
