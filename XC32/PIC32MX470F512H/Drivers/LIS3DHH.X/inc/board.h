@@ -31,6 +31,16 @@ typedef enum{
 } PIC32MX_Curiosity_leds_t;
 
 
+/**@brief SPI1.
+ */
+typedef enum{
+  SPI1_MOSI     = ( 1UL << 4UL ),      /*!<   SPI1_MOSI: RE4    */
+  SPI1_MISO     = ( 1UL << 6UL ),      /*!<   SPI1_MISO: RE6    */
+  SPI1_CLK      = ( 1UL << 7UL ),      /*!<   SPI1_CLK: RE7    */
+  SPI1_CS1      = ( 1UL << 7UL ),      /*!<   SPI1_CS1: RE7    */
+} PIC32MX_Curiosity_spi1_t;
+
+
 
 #ifdef __cplusplus
 }
