@@ -47,13 +47,54 @@ spi_status_t    spi_transfer ( spi_parameters_t mySPIparameters, uint8_t* spi_tx
     uint32_t     i                   =   0;
     uint32_t     spi_timeout1        =   232323;
     uint32_t     spi_timeout2        =   232323;
-
+    
+    /* SPI1 Enabled     */
+    SPI1CONbits.ON  =   1UL;
+    
+    /* Check if SPI is busy    */
+    while ( ( SPI1STATbits.SPIBUSY == 1UL ) && ( spi_timeout1 > 0UL ) ){
+        spi_timeout1--;
+    }
+    if ( spi_timeout1 == 0UL )
+    {
+        /* SPI1 Disabled     */
+        SPI1CONbits.ON  =   0UL;
+        
+        return SPI_BUSY_ERROR;
+    }
+    else
+    {
+        /* Transmit data    */
+        for ( i = 0UL; i < spi_tx_length; i++ )
+        {
+            SPI1BUF =   *spi_tx_buff++;
+            while ( ( SPI1STATbits.SPITBE == 0UL ) );
+        }
+        
+        /* Receive data */
+        for ( i = 0UL; i < spi_rx_length; i++ )
+        {
+            SPI1BUF =   0x23;
+            while ( ( SPI1STATbits.SPITBE == 0UL ) );
+            while ( ( SPI1STATbits.SPIRBF == 0UL ) );
+            *spi_rx_buff++  =   SPI1BUF;
+        }
+    }
+        
+    
+    
+    
+    
 
     /* Check if everything went fine */
     if ( ( spi_timeout1 < 1 ) || ( spi_timeout2 < 1 ) )
+    {
         return SPI_FAILURE;
+    }
     else
+    {
         return SPI_SUCCESS;
+    }
 }
 
 

@@ -75,7 +75,8 @@ typedef enum
 {
     SPI_SUCCESS     =   0x00,
     SPI_FAILURE     =   0x01,
-    SPI_CLK_ERROR   =   0x02
+    SPI_CLK_ERROR   =   0x02,
+    SPI_BUSY_ERROR  =   0x03
 } spi_status_t;
 
 
