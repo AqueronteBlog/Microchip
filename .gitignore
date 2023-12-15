@@ -34,3 +34,5 @@ XC8/Examples/gpio_out.X/nbproject/Makefile-genesis.properties
 XC8/Examples/gpio_out.X/*.log
 XC8/Examples/gpio_out.X/*.log.inx
 XC8/Examples/gpio_out.X/Makefile
+XC8/Examples/gpio_out.X/Proteus_Simulation/gpio_out_pic16f1937.pdsprj.MICAELA.mcm.workspace
+XC8/Examples/gpio_out.X/Proteus_Simulation/Backup Of gpio_out_pic16f1937.pdsbak
