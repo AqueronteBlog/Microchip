@@ -33,7 +33,8 @@
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     08/December/2023    The ORIGIN
+ * @version     15/December/2023    Turn all the LEDs off
+ *              08/December/2023    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -47,4 +48,7 @@ void conf_GPIO ( void )
     
     /* RB0, RB1, RB2 and RB3 no pull-ups */
     WPUB    &=  ~( D2 | D3 | D4 | D5 );
+    
+    /* Turn all the LEDs off    */
+    LATB    &=  ~( D2 | D3 | D4 | D5 );
 }
