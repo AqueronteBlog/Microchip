@@ -36,3 +36,7 @@ XC8/Examples/gpio_out.X/*.log.inx
 XC8/Examples/gpio_out.X/Makefile
 XC8/Examples/gpio_out.X/Proteus_Simulation/gpio_out_pic16f1937.pdsprj.MICAELA.mcm.workspace
 XC8/Examples/gpio_out.X/Proteus_Simulation/Backup Of gpio_out_pic16f1937.pdsbak
+XC8/Examples/gpio_in_polling/build/default/debug/
+XC8/Examples/gpio_in_polling/dist/default/debug/
+XC8/Examples/gpio_in_polling/Makefile
+XC8/Examples/gpio_in_polling/nbproject/
