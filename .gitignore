@@ -21,3 +21,10 @@ XC32/PIC32MX470F512H/Examples/WDT_Timer.X/nbproject/private/private.xml
 XC32/PIC32MX470F512H/Examples/UART.X/build/default/
 XC32/PIC32MX470F512H/Examples/UART.X/dist/default/production/
 XC32/PIC32MX470F512H/Examples/UART.X/.generated_files/
+XC8/Examples/gpio_out.X/build/
+XC8/Examples/gpio_out.X/dist/default/debug/
+XC8/Examples/gpio_out.X/dist/default/production/
+XC8/Examples/gpio_out.X/nbproject/private/
+XC8/Examples/project_example.X/build/default/debug/
+XC8/Examples/project_example.X/nbproject/private/
+XC8/Examples/project_example.X/dist/default/debug/
