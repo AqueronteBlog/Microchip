@@ -28,3 +28,9 @@ XC8/Examples/gpio_out.X/nbproject/private/
 XC8/Examples/project_example.X/build/default/debug/
 XC8/Examples/project_example.X/nbproject/private/
 XC8/Examples/project_example.X/dist/default/debug/
+XC8/Examples/gpio_out.X/nbproject/*.xml
+XC8/Examples/gpio_out.X/nbproject/*.mk
+XC8/Examples/gpio_out.X/nbproject/Makefile-genesis.properties
+XC8/Examples/gpio_out.X/*.log
+XC8/Examples/gpio_out.X/*.log.inx
+XC8/Examples/gpio_out.X/Makefile
