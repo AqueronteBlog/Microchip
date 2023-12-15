@@ -22,7 +22,7 @@ extern "C" {
 
 /**@brief Function prototypes.
  */
-
+void conf_GPIO  ( void );
 
 /**@brief Constants.
  */
