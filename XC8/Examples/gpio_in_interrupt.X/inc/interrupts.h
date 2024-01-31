@@ -22,7 +22,7 @@ extern "C" {
 
 /**@brief Subroutine prototypes.
  */
-
+void __interrupt() ISR ( void );
 
 
 /**@brief Constants.
@@ -32,7 +32,7 @@ extern "C" {
 
 /**@brief Variables.
  */
-
+extern volatile uint8_t myState;
 
 
 #ifdef __cplusplus
