@@ -56,3 +56,7 @@ XC8/Examples/gpio_in_interrupt.X/defmplabxtrace.log.inx
 XC8/Examples/gpio_in_interrupt.X/Backup Of gpio_in_int.pdsbak
 XC8/Examples/gpio_in_interrupt.X/defmplabxtrace.log
 XC8/Examples/gpio_in_interrupt.X/gpio_in_int.pdsprj.MICAELA.mcm.workspace
+XC8/Examples/timer0_polling.X/build/
+XC8/Examples/timer0_polling.X/dist/
+XC8/Examples/timer0_polling.X/nbproject/
+XC8/Examples/timer0_polling.X/Makefile
