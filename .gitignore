@@ -66,3 +66,5 @@ XC8/Examples/timer0_interrupt.X/nbproject/
 XC8/Examples/timer0_interrupt.X/Makefile
 XC8/Examples/timer0_interrupt.X/defmplabxtrace.log
 XC8/Examples/timer0_interrupt.X/defmplabxtrace.log.inx
+XC8/Examples/timer0_polling.X/defmplabxtrace.log
+XC8/Examples/timer0_polling.X/defmplabxtrace.log.inx
