@@ -70,3 +70,9 @@ XC8/Examples/timer0_polling.X/defmplabxtrace.log
 XC8/Examples/timer0_polling.X/defmplabxtrace.log.inx
 *.pdsbak
 *.workspace
+XC8/Examples/wdt_sleep.X/build/
+XC8/Examples/wdt_sleep.X/dist/
+XC8/Examples/wdt_sleep.X/nbproject/
+XC8/Examples/wdt_sleep.X/Makefile
+*.log
+*.inx
