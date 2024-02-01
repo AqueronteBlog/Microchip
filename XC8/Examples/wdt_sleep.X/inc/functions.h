@@ -22,9 +22,9 @@ extern "C" {
 
 /**@brief Function prototypes.
  */
-void conf_CLK       ( void );
-void conf_GPIO      ( void );
-void conf_Timer0    ( void );
+void conf_CLK   ( void );
+void conf_GPIO  ( void );
+void conf_WDT   ( void );
 
 /**@brief Constants.
  */

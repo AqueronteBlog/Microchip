@@ -17,9 +17,6 @@
  * @brief       void conf_CLK ( void )
  * @details     It configures the clocks.
  * 
- *              MFINTOSC
- *                  - 125kHz
- * 
  *
  * @param[in]    N/A.
  *
@@ -35,17 +32,8 @@
  * @warning     N/A
  */
 void conf_CLK ( void )
-{
-    /* 4x PLL is disabled  */
-    OSCCONbits.SPLLEN =   0U;
-    
-    /* Internal Oscillator Frequency: 125kHz  */
-    OSCCONbits.IRCF =   0b0101;
-    
-    /* Internal oscillator block */
-    OSCCONbits.SCS  =   0b11;
-    
-    while ( OSCSTATbits.MFIOFR == 0U ); // Wait until MFINTOSC is ready
+{    
+    while ( OSCSTATbits.LFIOFR == 0U ); // Wait until LFINTOSC is ready
 }
 
 
@@ -104,15 +92,12 @@ void conf_GPIO ( void )
 
 
 /**
- * @brief       void conf_Timer0 ( void )
- * @details     It configures the Timer0.
+ * @brief       void conf_WDT ( void )
+ * @details     It configures the Watchdog peripheral.
  *              
- *              Timer0_overflow = 4·( 1/f_Timer0_OSC )·( 256 - TMR0)·Prescaler
- * 
- *              Timer0
- *                  - Overflow every 0.5s
- *                  - TMR0 = 256 - [ Timer0_overflow / ( Prescaler*4·( 1/f_Timer0_OSC ) ] = 256 - [ 0.5 / ( 256*4·( 1/125000 ) ] ~ 195
- *                  - Timer0 interrupt overflows disabled
+ *              WDT:
+ *                  - WDT overflows ~512ms
+ *                  - Software Enabled
  * 
  * @param[in]    N/A.
  *
@@ -122,28 +107,16 @@ void conf_GPIO ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        31/January/2024
- * @version     31/January/2024    The ORIGIN
- * @pre         Error = 100*( 0.5079 0.5 )/0.5 = 1.58%
+ * @date        01/February/2024
+ * @version     01/February/2024    The ORIGIN
+ * @pre         N/A
  * @warning     N/A
  */
-void conf_Timer0 ( void )
+void conf_WDT ( void )
 {
-    /* Prescaler is assigned to the Timer0 module */
-    OPTION_REGbits.PSA   =  0U;
+    /* Watchdog Timer Period: 1:16384 (Interval 512ms typ) */
+    WDTCONbits.WDTPS    =   0b01001;
     
-    /* Prescaler Rate Select bits: 256 */
-    OPTION_REGbits.PS   =  0b111;
-    
-    /* Internal instruction cycle clock (FOSC/4) */
-    OPTION_REGbits.TMR0CS   =  0U;
-    
-    /* Timer0 overflows every 0.5s  */
-    TMR0    =   195U;
-    
-    /* Clear Timer0 interrupt flag */
-    INTCONbits.TMR0IF   =   0U;
-    
-    /* Timer0 interrupt disabled */
-    INTCONbits.TMR0IE   =   0U;
+    /* WDT is turned on */
+    WDTCONbits.SWDTEN   =   0b01;
 }
