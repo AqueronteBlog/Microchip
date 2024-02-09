@@ -28,16 +28,25 @@
  */
 void __interrupt() ISR ( void )
 {
-    /* Check if Timer0 Overflow interrupt is enabled and Timer0 Overflow occurred */
-    if ( ( INTCONbits.TMR0IE == 1U  ) && ( INTCONbits.TMR0IF == 1U ) )
+    /* Check if Timer2 Overflow interrupt is enabled and Timer2 Overflow occurred */
+    if ( ( PIE1bits.TMR2IE == 1U  ) && ( PIR1bits.TMR2IF == 1U ) )
     {        
         /* Update the variable  */
-        myState =   1U;
+        myState |=   0b01;
         
-        /* Reload Timer0, it overflows every 0.5s  */
-        TMR0    =   195U;
         
         /* Clear the interrupt flag   */
-        INTCONbits.TMR0IF = 0U;
+        PIR1bits.TMR2IF = 0U;
+    }
+    
+    /* Check if Timer6 Overflow interrupt is enabled and Timer6 Overflow occurred */
+    if ( ( PIE3bits.TMR6IE == 1U  ) && ( PIR3bits.TMR6IF == 1U ) )
+    {        
+        /* Update the variable  */
+        myState |=   0b10;
+        
+        
+        /* Clear the interrupt flag   */
+        PIR3bits.TMR6IF = 0U;
     }
 }
