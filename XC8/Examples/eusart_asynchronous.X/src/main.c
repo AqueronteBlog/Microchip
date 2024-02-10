@@ -1,6 +1,13 @@
 /**
  * @brief       main.c
- * @details     [todo]This example shows how to work with the internal peripheral: Timer2/4/6.
+ * @details     This example shows how to work with the internal peripheral: EUSART as asynchronous mode.
+ * 
+ *              D5 LED changes its state depending on what it is received over the UART:
+ *                  - D5 LED ON:    1, it is received from the UART.
+ *                  - D5 LED OFF:   2, it is received from the UART.
+ *              
+ *              Anytime a character is received, it will transmit the state of D5 LED, if
+ *              another character is received, D5 LED turns off and an error message is sent over the UART.
  * 
  *
  * @return      N/A
@@ -9,8 +16,12 @@
  * @date        10/February/2024
  * @version     10/February/2024    The ORIGIN
  * @pre         This project was tested on a PIC16F1937 using a PICDEM 2 Plus.
+ * @pre         In asynchronous mode, the SLEEP mode cannot be used due to EUSART clock source (F_OSC).
  * @warning     N/A
- * @pre         The Timer2/4/6 interrupt cannot wake the processor from Sleep since the timer is frozen during Sleep
+ * @pre         This code belongs to AqueronteBlog. 
+ *                  - GitHub:  https://github.com/AqueronteBlog
+ *                  - YouTube: https://www.youtube.com/user/AqueronteBlog
+ *                  - X:       https://twitter.com/aqueronteblog
  */
 
 // PIC16F1937 Configuration Bit Settings
@@ -47,27 +58,101 @@
 
 /**@brief Constants.
  */
+#define EUSART_BUFF 16
 
 
 /**@brief Variables.
  */
-
+volatile uint8_t    myState;    /* State that indicates when to perform the next action */
+volatile uint8_t    *myPtr;     /* Pointer to point out myMessage   */
 
 /**@brief Function for application main entry.
  */
 void main(void) {
-    conf_CLK    ();
-    conf_GPIO   ();
-    conf_Timer2 ();
+    uint8_t my_message[EUSART_BUFF] = {0};
+    
+    conf_clk    ();
+    conf_gpio   ();
+    conf_eusart ();
+    
+    /* Initiate variable  */
+    my_message[0]   =   'L';
+    my_message[1]   =   'E';
+    my_message[2]   =   'D';
+    my_message[3]   =   ' ';
+    my_message[4]   =   'D';
+    my_message[5]   =   '5';
+    my_message[6]   =   ' ';
+    my_message[7]   =   '0';
+    my_message[8]   =   'F';
+    my_message[9]   =   'F';
+    my_message[10]  =   '\n';
     
     /* Enable interrupts    */
     INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
     INTCONbits.GIE  =   1U; // Enables all active interrupts
     
-    /* Reset the variables  */
+    /* Reset variables  */
+    myState =   0U;
     
     while ( 1U )
     {
+        if ( myState != 0U )
+		{
+            /* Reset variable  */
+            my_message[5]   =   '5';
+            my_message[6]   =   ' ';
+            my_message[7]   =   'O';
+    
+			switch ( myState )
+			{
+				case '1':
+					/* Turn D5 on	 */
+					LATB    |=  D5;
+					my_message[8]   =   'N';
+                    my_message[9]  =   '\n';
+					break;
 
+				case '2':
+					/* Turn D5 off	 */
+					LATB    &=  ~D5;
+					my_message[8]   =   'F';
+                    my_message[9]   =   'F';
+                    my_message[10]  =   '\n';
+					break;
+
+				default:
+					/* Turn D5 off	 */
+					LATB    &=  ~D5; 
+
+					/* Initialized the message	 */
+					my_message[ 7 ]   =  'E';
+					my_message[ 8 ]   =  'R';
+					my_message[ 9 ]   =  'R';
+					my_message[ 10 ]  =  'O';
+					my_message[ 11 ]  =  'R';
+					my_message[ 12 ]  =  '!';
+                    my_message[ 13 ]  =  '\n';
+					break;
+			}
+            
+            /* Transmit data back	 */
+			myPtr    =   &my_message[0];
+            
+            /* Reset variables	 */
+			myState	 =	 0U;
+            
+            /* Enables the USART transmit interrupt	 */
+			PIE1bits.TXIE = 1UL;
+            
+            /* Disables receiver and enable transmission    */
+            RCSTAbits.CREN  =   0U;
+            TXSTAbits.TXEN  =   1UL;
+        }
+        else
+        {
+            /* Do nothing   */
+            // SLEEP();
+        }
     }
 }
