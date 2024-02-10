@@ -49,6 +49,16 @@ typedef enum{
 } picdem2_plus_switches_t;
 
 
+/**@brief EUSART.
+ */
+typedef enum{
+  RX_MSK    = ( 1U << 7U ),      /*!<   RX mask    */
+  RX        = ( 1U << 7U ),      /*!<   RX: RC7    */
+  TX_MSK    = ( 1U << 6U ),      /*!<   TX mask    */
+  TX        = ( 1U << 6U )       /*!<   TX: RC6    */
+} picdem2_plus_eusart_t;
+
+
 
 /**@brief Variables.
  */
