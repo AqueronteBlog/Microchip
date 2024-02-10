@@ -14,11 +14,11 @@
 
 
 /**
- * @brief       void conf_CLK ( void )
+ * @brief       void conf_clk ( void )
  * @details     It configures the clocks.
  * 
- *              MFINTOSC
- *                  - 125kHz
+ *              HFINTOSC
+ *                  - 16MHz
  * 
  *
  * @param[in]    N/A.
@@ -29,28 +29,28 @@
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
+ * @date        10/February/2024
+ * @version     10/February/2024    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
-void conf_CLK ( void )
+void conf_clk ( void )
 {
     /* 4x PLL is disabled  */
     OSCCONbits.SPLLEN =   0U;
     
-    /* Internal Oscillator Frequency: 125kHz  */
-    OSCCONbits.IRCF =   0b0101;
+    /* Internal Oscillator Frequency: 16MHz  */
+    OSCCONbits.IRCF =   0b1111;
     
     /* Internal oscillator block */
     OSCCONbits.SCS  =   0b11;
     
-    while ( OSCSTATbits.MFIOFR == 0U ); // Wait until MFINTOSC is ready
+    while ( OSCSTATbits.HFIOFR == 0U ); // Wait until HFINTOSC is ready
 }
 
 
 /**
- * @brief       void conf_GPIO ( void )
+ * @brief       void conf_gpio ( void )
  * @details     It configures GPIOs.
  * 
  *              PORTB
@@ -62,6 +62,9 @@ void conf_CLK ( void )
  *              PORTA
  *                  - RA4: GPIO Input pin
  * 
+ *              PORTC
+ *                  - RC7: GPIO Input pin (EUSART Rx)
+ * 
  *
  * @param[in]    N/A.
  *
@@ -72,13 +75,14 @@ void conf_CLK ( void )
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     15/December/2023    Turn all the LEDs off
+ * @version     10/February/2024    EUSART pins are configured
+ *              15/December/2023    Turn all the LEDs off
  *                                  RA4 as an input pin
  *              08/December/2023    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
-void conf_GPIO ( void )
+void conf_gpio ( void )
 {
     /* RB0, RB1, RB2 and RB3 as digital I/O pins */
     ANSELB  &=  ~( D3 | D4 | D5 | S3 );
@@ -100,20 +104,28 @@ void conf_GPIO ( void )
     
     /* RA4 as an input pin */
     TRISA   |=  S2;
+    
+    /* RC7 as an input pin */
+    TRISC   |=  RX;
+    
+    /* RC6 as an output pin */
+    TRISC   &=  ~( TX );
 }
 
 
 /**
- * @brief       void conf_Timer2 ( void )
- * @details     It configures the Timer2.
+ * @brief       void conf_eusart ( void )
+ * @details     It configures the EUSART in 16-bit asynchronous mode.
  *              
- *              TMR2_flag ( TMR2 = PR2 ) = ( 1/( f_Timer2_OSC/4 ) )·Prescaler
+ *              Desire_baudrate = F_OSC/[4·(SPBRG+1)]
  * 
- *              Timer2
- *                  - TMR2 overflows every 0.5s
- *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 0.5 / ( 64*4·( 1/125000 ) ] ~ 244
- *                  - TMR2 flag enabled every 0.5s: 0.5s*Postcaler = 0.5*1 = 0.5s 
- *                  - Timer2 interrupt enabled
+ *              EUSART
+ *                  - 16-bit asynchronous mode
+ *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 16000000/(4·115200) ) - 1 ~ 34 (0x0022)
+ *                  - 8-bit reception/transmission
+ *                  - Auto-Baud detect disabled
+ *                  - Receiver interrupt enabled
+ *                  - Transmission interrupt disabled
  * 
  * @param[in]    N/A.
  *
@@ -123,28 +135,60 @@ void conf_GPIO ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
- * @pre         Error = 100*( 0.5 - 0.4997 )/0.5 = 0.06%
+ * @date        10/February/2024
+ * @version     10/February/2024    The ORIGIN
+ * @pre         Error = 100*( 115200 - 114285.714 )/115200 = 0.79%
  * @warning     N/A
  */
-void conf_Timer2 ( void )
+void conf_eusart ( void )
 {
-    /* Stops Timer2 */
-    T2CONbits.TMR2ON   =  0U;
-        
-    /* Prescaler is 64 */
-    T2CONbits.T2CKPS   =  0b11;
+    /* Serial port disabled (held in Reset)    */
+    RCSTAbits.SPEN  =   0U;
     
-    /* 1:1 Postscaler */
-    T2CONbits.T2OUTPS   =  0b0000;
+    /* Selects 8-bit reception    */
+    RCSTAbits.RX9  =   0U;
     
-    /* Timer2 overflows every 0.5s ( TMR2 = PR2 )  */
-    PR2    =   244U;
+    /* Disables receiver (Asynchronous mode)    */
+    RCSTAbits.CREN  =   0U;
     
-    /* Clear Timer2 interrupt flag */
-    PIR1bits.TMR2IF   =   0U;
+    /* Selects 8-bit transmission    */
+    TXSTAbits.TX9   =   0U;
     
-    /* Timer2 interrupt enabled */
-    PIE1bits.TMR2IE   =   1U;
+    /* Transmit disabled    */
+    TXSTAbits.TXEN   =   0U;
+    
+    /* EUSART: Asynchronous mode    */
+    TXSTAbits.SYNC   =   0U;
+    
+    /* EUSART: High speed    */
+    TXSTAbits.BRGH   =   1U;
+    
+    /* Transmit non-inverted data to the TX/CK pin  */
+    BAUDCONbits.SCKP    =   0U;
+    
+    /* 16-bit Baud Rate Generator is used    */
+    BAUDCONbits.BRG16   =   1U;
+    
+    /* Auto-Baud Detect mode is disabled    */
+    BAUDCONbits.ABDEN   =   0U;
+    
+    /* Baudrate value   */
+    SPBRGH  =   0x00;
+    SPBRGL  =   0x22;
+    
+    /* Clear receiver (Rx) and transmission (Tx) interrupt flags   */
+    PIR1bits.RCIF   =   0U;
+    PIR1bits.TXIF   =   0U;
+    
+    /* Enable receiver (Rx) interrupt    */
+    PIE1bits.RCIE   =   1U;
+    
+    /* Disable transmission (Tx) interrupt    */
+    PIE1bits.TXIE   =   0U;
+    
+    /* Enable receiver (Asynchronous mode)    */
+    RCSTAbits.CREN  =   1U;
+    
+    /* Serial port enabled (configures RX/DT and TX/CK pins as serial port pins)    */
+    RCSTAbits.SPEN  =   1U;
 }
