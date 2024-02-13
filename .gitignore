@@ -99,3 +99,5 @@ XC8/Examples/eusart_asynchronous.X/Makefile
 *.properties
 XC8/Examples/eusart_asynchronous.X/dist/default/debug/
 XC8/Examples/eusart_asynchronous.X/dist/default/production/
+*.elf
+*Makefile
