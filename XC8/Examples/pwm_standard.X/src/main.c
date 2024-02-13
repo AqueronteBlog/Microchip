@@ -51,25 +51,20 @@
 
 /**@brief Variables.
  */
-volatile uint8_t myState;   // BIT0 -> D5 LED | BIT1 -> D3 LED
+
 
 /**@brief Function for application main entry.
  */
 void main(void) {
-    conf_CLK    ();
-    conf_GPIO   ();
-    conf_Timer2 ();
-    conf_Timer4 ();
-    conf_Timer6 ();
+    uint8_t myState;  // variable for changing the PWM duty cycle 
     
-    /* Enable interrupts    */
-    INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
-    INTCONbits.GIE  =   1U; // Enables all active interrupts
+    conf_clk    ();
+    conf_gpio   ();
+    conf_pwm_standard ();
     
-    /* Start timers */
-    T2CONbits.TMR2ON   =  1U;
-    T4CONbits.TMR4ON   =  1U;
-    T6CONbits.TMR6ON   =  1U;
+    /* Disable interrupts    */
+    INTCONbits.PEIE =   0U; // Disable all active peripheral interrupts
+    INTCONbits.GIE  =   0U; // Disable all active interrupts
     
     /* Reset the variables  */
     myState =   0U;
@@ -79,37 +74,11 @@ void main(void) {
         /* Check if an interrupt is triggered by TMR2 or TMR6    */
         if ( myState != 0U )
         {
-            /* Check if TMR2 interrupt is triggered */
-            if ( ( myState & 0b01 ) != 0U )
-            {
-                /* Change the state of D5 LED    */
-                LATB    ^=  D5;
             
-                /* Reset the variable  */
-                myState &=   ~0b01;
-            }
-            
-            /* Check if TMR6 interrupt is triggered */
-            if ( ( myState & 0b10 ) != 0U )
-            {
-                /* Change the state of D3 LED    */
-                LATB    ^=  D3;
-            
-                /* Reset the variable  */
-                myState &=   ~0b10;
-            }
         }
         else
         {
-            /* Check if Timer4 Overflow is triggered by polling */
-            if ( PIR3bits.TMR4IF == 1U )
-            {        
-                /* Change the state of D4 LED    */
-                LATB    ^=  D4;
-            
-                /* Clear the interrupt flag   */
-                PIR3bits.TMR4IF = 0U;
-            }
+            //SLEEP();
         }
     }
 }
