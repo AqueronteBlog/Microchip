@@ -49,6 +49,14 @@ typedef enum{
 } picdem2_plus_switches_t;
 
 
+/**@brief PWM STANDARD.
+ */
+typedef enum{
+  CCP5_MSK    = ( 1U << 2U ),      /*!<   CCP5 mask    */
+  CCP5        = ( 1U << 2U )       /*!<   CCP5: RE2    */
+} picdem2_plus_pwm_standard_t;
+
+
 
 /**@brief Variables.
  */
