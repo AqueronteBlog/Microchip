@@ -104,16 +104,11 @@ void conf_GPIO ( void )
 
 
 /**
- * @brief       void conf_Timer2 ( void )
- * @details     It configures the Timer2.
+ * @brief       void conf_ioc ( void )
+ * @details     It configures the interrupt-on-change peripheral.
  *              
- *              TMR2_flag ( TMR2 = PR2 ) = ( 1/( f_Timer2_OSC/4 ) )·Prescaler
- * 
- *              Timer2
- *                  - TMR2 overflows every 0.5s
- *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 0.5 / ( 64*4·( 1/125000 ) ] ~ 244
- *                  - TMR2 flag enabled every 0.5s: 0.5s*Postcaler = 0.5*1 = 0.5s 
- *                  - Timer2 interrupt enabled
+ *              IOC
+ *                  - RB0 ioc enabled
  * 
  * @param[in]    N/A.
  *
@@ -123,122 +118,16 @@ void conf_GPIO ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
- * @pre         Error = 100*( 0.5 - 0.4997 )/0.5 = 0.06%
+ * @date        17/February/2024
+ * @version     17/February/2024    The ORIGIN
+ * @pre         N/A
  * @warning     N/A
  */
-void conf_Timer2 ( void )
+void conf_ioc ( void )
 {
-    /* Stops Timer2 */
-    T2CONbits.TMR2ON   =  0U;
-        
-    /* Prescaler is 64 */
-    T2CONbits.T2CKPS   =  0b11;
+    /* RBO ioc negative edge enabled */
+    IOCBNbits.IOCBN0    =   1U;
     
-    /* 1:1 Postscaler */
-    T2CONbits.T2OUTPS   =  0b0000;
-    
-    /* Timer2 overflows every 0.5s ( TMR2 = PR2 )  */
-    PR2    =   244U;
-    
-    /* Clear Timer2 interrupt flag */
-    PIR1bits.TMR2IF   =   0U;
-    
-    /* Timer2 interrupt enabled */
-    PIE1bits.TMR2IE   =   1U;
-}
-
-
-/**
- * @brief       void conf_Timer4 ( void )
- * @details     It configures the Timer4.
- *              
- *              TMR4_flag ( TMR4 = PR4 ) = ( 1/( f_Timer4_OSC/4 ) )·Prescaler
- * 
- *              Timer4
- *                  - TMR2 overflows every 0.5s
- *                  - PR4 = [ TMR4_flag / ( 4·Prescaler·( 1/f_Timer4_OSC ) ] = [ 0.5 / ( 64*4·( 1/125000 ) ] ~ 244
- *                  - TMR4 Flag enabled every 1s: 0.5s*Postcaler = 0.5*2 = 1s 
- *                  - Timer4 interrupt disabled
- * 
- * @param[in]    N/A.
- *
- * @param[out]   N/A.
- *
- *
- * @return      N/A
- *
- * @author      Manuel Caballero
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
- * @pre         Error = 100*( 0.5 - 0.4997 )/0.5 = 0.06%
- * @warning     N/A
- */
-void conf_Timer4 ( void )
-{
-    /* Stops Timer4 */
-    T4CONbits.TMR4ON   =  0U;
-        
-    /* Prescaler is 64 */
-    T4CONbits.T4CKPS   =  0b11;
-    
-    /* 1:2 Postscaler */
-    T4CONbits.T4OUTPS   =  0b0001;
-    
-    /* Timer4 overflows every 0.5s ( TMR4 = PR4 )  */
-    PR4    =   244U;
-    
-    /* Clear Timer4 interrupt flag */
-    PIR3bits.TMR4IF   =   0U;
-    
-    /* Timer4 interrupt disabled */
-    PIE3bits.TMR4IE   =   0U;
-}
-
-
-/**
- * @brief       void conf_Timer6 ( void )
- * @details     It configures the Timer6.
- *              
- *              TMR6_flag ( TMR6 = PR6 ) = ( 1/( f_Timer6_OSC/4 ) )·Prescaler
- * 
- *              Timer6
- *                  - TMR6 overflows every 0.5s
- *                  - PR6 = [ TMR6_flag / ( 4·Prescaler·( 1/f_Timer6_OSC ) ] = [ 0.5 / ( 64*4·( 1/125000 ) ] ~ 244
- *                  - TMR6 flag enabled every 1.5s: 0.5s*Postcaler = 0.5*3 = 1.5s 
- *                  - Timer6 interrupt enabled
- * 
- * @param[in]    N/A.
- *
- * @param[out]   N/A.
- *
- *
- * @return      N/A
- *
- * @author      Manuel Caballero
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
- * @pre         Error = 100*( 0.5 - 0.4997 )/0.5 = 0.06%
- * @warning     N/A
- */
-void conf_Timer6 ( void )
-{
-    /* Stops Timer2 */
-    T6CONbits.TMR6ON   =  0U;
-        
-    /* Prescaler is 64 */
-    T6CONbits.T6CKPS   =  0b11;
-    
-    /* 1:3 Postscaler */
-    T6CONbits.T6OUTPS   =  0b0010;
-    
-    /* Timer6 overflows every 0.5s ( TMR6 = PR6 )  */
-    PR6    =   244U;
-    
-    /* Clear Timer6 interrupt flag */
-    PIR3bits.TMR6IF   =   0U;
-    
-    /* Timer6 interrupt enabled */
-    PIE3bits.TMR6IE   =   1U;
+    /* Clear the ioc flag associated to RB0 */
+    IOCBFbits.IOCBF0    =   0U;
 }
