@@ -50,21 +50,52 @@
 #include "../inc/board.h"
 #include "../inc/functions.h"
 #include "../inc/interrupts.h"
+#include "../../../../../Drivers/TC74/inc/TC74.h"
 
 /**@brief Constants.
  */
-
+#define I2C0_FREQUENCY   		100000U	/*!< I2C frequency */
+#define I2C_MASTER_TIMEOUT_MS	500		/*!< I2C master communication timeout */
+#define ACK_CHECK_EN        	0x01    /*!< I2C master will check ack from slave*/
+#define ACK_CHECK_DIS       	0x00    /*!< I2C master will not check ack from slave */
+#define ACK_VAL             	0x00    /*!< I2C ack value */
+#define NACK_VAL            	0x01    /*!< I2C nack value */
 
 /**@brief Variables.
  */
 volatile uint8_t myState;
 
+/**@brief Function prototypes.
+ */
+/** I2C writing function.
+  */
+static i2c_status_t	i2c_write	( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length, i2c_stop_bit_t i2c_generate_stop );
+
+/** I2C reading function.
+  */
+static i2c_status_t	i2c_read	( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length );
+
+
 /**@brief Function for application main entry.
  */
 void main(void) {
-    conf_CLK    ();
-    conf_GPIO   ();
-    conf_ioc    ();
+    TC74_data_t     myTC74_param = { 0 };	
+	TC74_status_t   err = TC74_SUCCESS;
+	
+	/* Configure I2C for external peripheral: TC74	*/
+	static TC74_i2c_comm_t myTC74_i2c = {
+		.i2c.address	= TC74_A5,
+		.i2c.read 		= i2c_read,
+		.i2c.write 		= i2c_write
+	};
+    
+    conf_CLK        ();
+    conf_GPIO       ();
+    conf_master_i2c ();
+    
+    /* Disable TC74  */
+    myTC74_param.config.standby =   CONFIG_STANDBY_STANDBY;
+    err =   TC74_SetConfig  ( &myTC74_i2c, myTC74_param.config.standby );
     
     /* Enable interrupts    */
     INTCONbits.IOCIE    =   1U; // Enable the interrupt-on-change
@@ -79,11 +110,31 @@ void main(void) {
         /* Check if an interrupt is triggered by TMR2 or TMR6    */
         if ( myState != 0U )
         {
-            /* Change the state of D5 LED    */
-            LATB    ^=  D5;
+            /* D5 LED on    */
+            LATB    |=  D5;
+            
+            /* TC74. Enabled  */
+            myTC74_param.config.standby =   CONFIG_STANDBY_NORMAL;
+            err =   TC74_SetConfig ( &myTC74_i2c, myTC74_param.config.standby );
+            
+            /* TC74. Wait until the data is ready */
+            do{
+                myTC74_param.config.data_ready  =   CONFIG_DATA_READY_NOT_READY;
+                err =   TC74_GetConfig ( &myTC74_i2c, &myTC74_param.config );
+            }while( myTC74_param.config.data_ready == CONFIG_DATA_READY_NOT_READY );
+            
+            /* TC74. Get temperature  */
+            err =   TC74_GetTemperature ( &myTC74_i2c, &myTC74_param.raw_temperature );
+            
+            /* TC74. Disabled  */
+            myTC74_param.config.standby =   CONFIG_STANDBY_STANDBY;
+            err =   TC74_SetConfig  ( &myTC74_i2c, myTC74_param.config.standby );
             
             /* Reset the variable  */
             myState =   0U;
+            
+            /* D5 LED off    */
+            LATB    &=  ~D5;
         }
         else
         {
@@ -91,4 +142,77 @@ void main(void) {
             SLEEP();
         }
     }
+}
+
+
+
+/**
+ * @brief       i2c_status_t i2c_read ( uint8_t , uint8_t* , uint32_t )
+ * @details     [todo]I2C read fucntion.
+ *
+ *
+ * @param[in]    dev_addr: 	Device address.
+ * @param[in]    length: 	How many bytes to be transmitted.
+ *
+ * @param[out]   i2c_buff:	Data output.
+ *
+ *
+ * @return      Status of i2c_read
+ *
+ * @author      Manuel Caballero
+ * @date        17/February/2024
+ * @version     17/February/2024   The ORIGIN
+ * @pre         N/A
+ * @warning     N/A
+ */
+static i2c_status_t i2c_read ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length )
+{
+    
+    
+    if ( 1 )
+	{
+		return I2C_SUCCESS;
+	}
+	else
+	{
+		return I2C_FAILURE;
+	}
+}
+
+
+
+/**
+ * @brief       i2c_status_t i2c_write ( uint8_t , uint8_t* , uint32_t , i2c_stop_bit_t )
+ * @details     [todo]I2C write function.
+ *
+ *
+ * @param[in]    dev_addr: 			Device address.
+ * @param[in]    length: 			How many bytes to be transmitted.
+ * @param[in]    i2c_buff: 			Data input.
+ * @param[in]    i2c_generate_stop:	Stop bit generation.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      Status of i2c_write
+ *
+ * @author      Manuel Caballero
+ * @date        17/February/2024
+ * @version     17/February/2024   The ORIGIN
+ * @pre         N/A
+ * @warning     N/A
+ */
+static i2c_status_t i2c_write ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length, i2c_stop_bit_t i2c_generate_stop )
+{
+	
+
+
+	if ( 1 )
+	{
+		return I2C_SUCCESS;
+	}
+	else
+	{
+		return I2C_FAILURE;
+	}
 }
