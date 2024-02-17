@@ -122,6 +122,7 @@ void conf_gpio ( void )
  *                  - PWM_period = 1ms (1kHz)
  *                  - Duty_cycle_ratio = 50% (Initial)
  *                  - PWM_standard: CCP5 (RE2)
+ *                  - TMRx_prescale = 64
  *                  - f_Timerx_OSC = f_OSC = 16MHz
  *                  - PWM_period: PRx = [ PWM_period / ( 4·TMRx_prescale·( 1/f_Timerx_OSC ) ] - 1 = [ 0.001 / ( 64*4·( 1/16000000 ) ] - 1 ~ 62
  *                  - Duty_cycle_ratio: CCPRxL:CCPxCON<5:4> = Duty_cycle_ratio·[ 4·( PRx + 1 ) ] = 50·[ 4·( 62 + 1 ) ] / 100 = 126 (0x7E)
