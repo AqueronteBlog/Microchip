@@ -99,3 +99,6 @@ XC8/Examples/eusart_asynchronous.X/Makefile
 *.properties
 XC8/Examples/eusart_asynchronous.X/dist/default/debug/
 XC8/Examples/eusart_asynchronous.X/dist/default/production/
+*.elf
+*Makefile
+XC8/Examples/pwm_standard.X/dist/default/production/pwm_standard.X.production.hex
