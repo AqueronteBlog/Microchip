@@ -62,6 +62,10 @@ void conf_CLK ( void )
  *              PORTA
  *                  - RA4: GPIO Input pin
  * 
+ *              PORTC
+ *                  - RC4: GPIO Input pin (I2C_SDA)
+ *                  - RC3: GPIO Input pin (I2C_SCL)
+ * 
  *
  * @param[in]    N/A.
  *
@@ -72,7 +76,8 @@ void conf_CLK ( void )
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     15/December/2023    Turn all the LEDs off
+ * @version     17/February/2024    I2C pins were added
+ *              15/December/2023    Turn all the LEDs off
  *                                  RA4 as an input pin
  *              08/December/2023    The ORIGIN
  * @pre         N/A
@@ -100,15 +105,23 @@ void conf_GPIO ( void )
     
     /* RA4 as an input pin */
     TRISA   |=  S2;
+    
+    /* I2C. RC3 (SCL) and RC4 (SDA) as an input pin */
+    TRISC   |=  ( SDA | SCL );
 }
 
 
 /**
- * @brief       void conf_ioc ( void )
- * @details     It configures the interrupt-on-change peripheral.
+ * @brief       void conf_master_i2c ( void )
+ * @details     It configures the I2C peripheral.
+ * 
+ *              SCL_F_CLOCK = F_OSC / ( 4*( SSPxADD + 1 ) )
  *              
- *              IOC
- *                  - RB0 ioc enabled
+ *              I2C
+ *                  - Master mode.
+ *                  - Polling mode (interrupts disabled)
+ *                  - SCL_F_CLOCK = 100kHz. SSPxADD = ( F_OSC / ( 4*SCL_F_CLOCK ) ) - 1 = ( 16MHz / ( 4*100kHz ) ) - 1 = 39
+ *                  - F_OSC = 16MHz
  * 
  * @param[in]    N/A.
  *
@@ -123,11 +136,24 @@ void conf_GPIO ( void )
  * @pre         N/A
  * @warning     N/A
  */
-void conf_ioc ( void )
+void conf_master_i2c ( void )
 {
-    /* RBO ioc negative edge enabled */
-    IOCBNbits.IOCBN0    =   1U;
+    /* Disable the serial port and configures the SDA and SCL pins */
+    SSPCON1bits.SSPEN    =   0U;
     
-    /* Clear the ioc flag associated to RB0 */
-    IOCBFbits.IOCBF0    =   0U;
+    /*  I2C Master mode */
+    SSPCON1bits.SSPM    =   0b1000;
+    
+    /* Disable all I2C interrupts   */
+    SSPCON3bits.PCIE    =   0U;
+    SSPCON3bits.SCIE    =   0U;
+    
+    /*  Minimum of 100 ns hold time on SDA after the falling edge of SCL   */
+    SSPCON3bits.SDAHT    =   0U;
+    
+    /*  SCL pin clock = 100kHz   */
+    SSPADD    =   39U; 
+    
+    /* Enable the serial port and configures the SDA and SCL pins */
+    SSPCON1bits.SSPEN    =   1U;
 }
