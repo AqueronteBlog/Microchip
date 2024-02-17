@@ -28,25 +28,14 @@
  */
 void __interrupt() ISR ( void )
 {
-    /* Check if Timer2 Overflow interrupt is enabled and Timer2 Overflow occurred */
-    if ( ( PIE1bits.TMR2IE == 1U  ) && ( PIR1bits.TMR2IF == 1U ) )
+    /* Check if IOC interrupt is enabled and IOC negative edge happened */
+    if ( ( INTCONbits.IOCIE == 1U  ) && ( IOCBFbits.IOCBF0 == 1U ) )
     {        
         /* Update the variable  */
-        myState |=   0b01;
+        myState =   1U;
         
         
         /* Clear the interrupt flag   */
-        PIR1bits.TMR2IF = 0U;
-    }
-    
-    /* Check if Timer6 Overflow interrupt is enabled and Timer6 Overflow occurred */
-    if ( ( PIE3bits.TMR6IE == 1U  ) && ( PIR3bits.TMR6IF == 1U ) )
-    {        
-        /* Update the variable  */
-        myState |=   0b10;
-        
-        
-        /* Clear the interrupt flag   */
-        PIR3bits.TMR6IF = 0U;
+        IOCBFbits.IOCBF0 = 0U;
     }
 }
