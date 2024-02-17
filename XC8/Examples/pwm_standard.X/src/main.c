@@ -1,6 +1,16 @@
 /**
  * @brief       main.c
- * @details     [todo]This example shows how to work with the internal peripheral: Timer2/4/6.
+ * @details     This example shows how to work with the internal peripheral: Standard PWM.
+ * 
+ *              A 1kHz signal with 50% duty cycle on pin RE2 is present when the program starts,
+ *              when the user pushes the S3 button (RB0), the PWM duty cycle will change as shown below:
+ * 
+ *              - PWM duty cycle:
+ *                  -   0%
+ *                  -  25%
+ *                  -  50%
+ *                  -  75%
+ *                  - 100%
  * 
  *
  * @return      N/A
@@ -10,7 +20,7 @@
  * @version     13/February/2024    The ORIGIN
  * @pre         This project was tested on a PIC16F1937 using a PICDEM 2 Plus.
  * @warning     N/A
- * @pre         The Timer2/4/6 interrupt cannot wake the processor from Sleep since the timer is frozen during Sleep
+ * @pre         PWM: The Timer2/4/6 interrupt cannot wake the processor from Sleep since the timer is frozen during Sleep
  */
 
 // PIC16F1937 Configuration Bit Settings
@@ -71,14 +81,71 @@ void main(void) {
     
     while ( 1U )
     {
-        /* Check if an interrupt is triggered by TMR2 or TMR6    */
-        if ( myState != 0U )
+        /* Wait until S3 is pressed to change the PWM duty cycle    */
+        while ( PORTBbits.RB0 == 1U );
+        
+        /* Anti-bouncing method    */
+        while ( PORTBbits.RB0 == 0U );
+        
+        /* Disable the CCP5 pin output driver  */
+        TRISE   |=   CCP5;
+        
+        switch ( myState )
         {
-            
+            default:
+            case 0:
+                /* Duty cycle: 0%   */
+                CCPR5L              =   ( 0x00 >> 2U );
+                CCP5CONbits.DC5B    =   ( 0b11 & 0x00 );
+                
+                /* Update my state variable, next state */
+                myState =   1U;
+                break;
+                
+            case 1:
+                /* Duty cycle: 25%   */
+                CCPR5L              =   ( 0x3F >> 2U );
+                CCP5CONbits.DC5B    =   ( 0b11 & 0x3F );
+                
+                /* Update my state variable, next state */
+                myState =   2U;
+                break;
+                
+            case 2:
+                /* Duty cycle: 50%   */
+                CCPR5L              =   ( 0x7E >> 2U );
+                CCP5CONbits.DC5B    =   ( 0b11 & 0x7E );
+                
+                /* Update my state variable, next state */
+                myState =   3U;
+                break;
+                
+            case 3:
+                /* Duty cycle: 75%   */
+                CCPR5L              =   ( 0xBD >> 2U );
+                CCP5CONbits.DC5B    =   ( 0b11 & 0xBD );
+                
+                /* Update my state variable, next state */
+                myState =   4U;
+                break;
+                
+            case 4:
+                /* Duty cycle: 100%   */
+                CCPR5L              =   ( 0xFC >> 2U );
+                CCP5CONbits.DC5B    =   ( 0b11 & 0xFC );
+                
+                /* Update my state variable, next state */
+                myState =   0U;
+                break;
         }
-        else
-        {
-            //SLEEP();
-        }
+        
+        /* Clear the TMR2IF interrupt flag */
+        PIR1bits.TMR2IF   =   0U;
+    
+        /* Wait until the Timer2 overflows   */
+        while ( PIR1bits.TMR2IF == 0U );
+    
+        /* Enable the CCP5 pin output driver  */
+        TRISE   &=   ~CCP5;
     }
 }
