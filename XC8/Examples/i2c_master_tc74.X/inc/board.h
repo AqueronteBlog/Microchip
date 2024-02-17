@@ -49,6 +49,26 @@ typedef enum{
 } picdem2_plus_switches_t;
 
 
+/**@brief EUSART.
+ */
+typedef enum{
+  RX_MSK    = ( 1U << 7U ),      /*!<   RX mask    */
+  RX        = ( 1U << 7U ),      /*!<   RX: RC7    */
+  TX_MSK    = ( 1U << 6U ),      /*!<   TX mask    */
+  TX        = ( 1U << 6U )       /*!<   TX: RC6    */
+} picdem2_plus_eusart_t;
+
+
+/**@brief I2C.
+ */
+typedef enum{
+  SDA_MSK    = ( 1U << 4U ),      /*!<   SDA mask    */
+  SDA        = ( 1U << 4U ),      /*!<   SDA: RC4    */
+  SCL_MSK    = ( 1U << 3U ),      /*!<   SCL mask    */
+  SCL        = ( 1U << 3U )       /*!<   SCL: RC3    */
+} picdem2_plus_i2c_t;
+
+
 
 /**@brief Variables.
  */
