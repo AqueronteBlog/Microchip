@@ -204,10 +204,57 @@ static i2c_status_t i2c_read ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t len
  */
 static i2c_status_t i2c_write ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length, i2c_stop_bit_t i2c_generate_stop )
 {
-	
+    uint8_t     i   =   0U;
+    uint32_t    timeout1    =   0UL;
+    
+    /* Generate a START condition   */
+    SSPCON2bits.SEN =   1U;
+    
+    /* Wait for completion of the START condition or timeout */
+    while ( ( PIR1bits.SSPIF  ==  1U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
+	PIR1bits.SSPIF  =  0U;
+    
+    /* Send the I2C slave address   */
+    SSPBUF  =   dev_addr;
 
-
-	if ( 1 )
+    /* Wait for ACK from I2C slave  */
+    timeout1    =   0UL;
+    while ( ( SSPCON2bits.ACKSTAT ==  1U ) && ( timeout1 < 0x323 ) )
+    {
+        timeout1++;
+    }
+    
+    for ( i = 0U; i < length; i++ )
+    {
+        /* Send data    */
+        SSPBUF  =   i2c_buff[i];
+        
+        /* Wait for ACK from I2C slave  */
+        timeout1    =   0UL;
+        while ( ( SSPCON2bits.ACKSTAT ==  1U ) && ( timeout1 < 0x323 ) )
+        {
+            timeout1++;
+        }
+    }
+    
+    if ( i2c_generate_stop == I2C_STOP_BIT )
+    {
+        /* Generate a STOP condition    */
+        SSPCON2bits.PEN =   1U;
+    
+        /* Wait until STOP condition is generated   */
+        timeout1    =   0UL;
+        while ( ( SSPCON2bits.PEN ==   1U ) && ( timeout1 < 0x323 ) )
+        {
+            timeout1++;
+        }
+    }
+    
+    
+	if ( timeout1 < 0x323 )
 	{
 		return I2C_SUCCESS;
 	}
