@@ -108,8 +108,8 @@ void main(void) {
     while ( 1U )
     {
         /* Check if an interrupt is triggered by TMR2 or TMR6    */
-        if ( myState != 0U )
-        {
+        //if ( myState != 0U )
+        //{
             /* D5 LED on    */
             LATB    |=  D5;
             
@@ -135,12 +135,12 @@ void main(void) {
             
             /* D5 LED off    */
             LATB    &=  ~D5;
-        }
-        else
-        {
+        //}
+        //else
+        //{
             /* Sleep mode */
-            SLEEP();
-        }
+         //   SLEEP();
+        //}
     }
 }
 
@@ -167,9 +167,72 @@ void main(void) {
  */
 static i2c_status_t i2c_read ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length )
 {
+    uint8_t     i   =   0U;
+    uint32_t    timeout1    =   0UL;
+    
+    /* Generate a START condition   */
+    SSPCON2bits.SEN =   1U;
+    
+    /* Wait for completion of the START condition or timeout */
+    while ( ( PIR1bits.SSPIF  ==  1U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
+	PIR1bits.SSPIF  =  0U;
+    
+    /* Send the I2C slave address. Read option   */
+    SSPBUF  =   (uint8_t)( ( dev_addr << 1U ) | 0x01 );
+    
+    /* Wait for ACK from I2C slave  */
+    timeout1    =   0UL;
+    while ( ( SSPCON2bits.ACKSTAT ==  1U ) && ( timeout1 < 0x323 ) )
+    {
+        timeout1++;
+    }
+    
+    for ( i = 0U; i < length; i++ )
+    {
+        /* Enables Receive mode for I2C */
+        SSPCON2bits.RCEN    =   1U;
+        
+        /* Wait for Receive complete, SSPBUF is full or timeout */
+        timeout1    =   0UL;
+        while ( ( PIR1bits.SSPIF  ==  1U ) && ( SSPSTATbits.BF  ==  1U ) && ( timeout1 < 0x3232 ) )
+        {
+            timeout1++;
+        }
+        PIR1bits.SSPIF  =  0U;
+        
+        /* Read data    */
+        i2c_buff[i] =   SSPBUF;
+        
+        SSPSTATbits.BF  =  0U;
+        
+        /* Acknowledge and Initiate Acknowledge sequence    */
+        SSPCON2bits.ACKDT   =   0U;
+        SSPCON2bits.ACKEN   =   1U;
+        
+        /* Wait for Receive complete, SSPBUF is full or timeout */
+        timeout1    =   0UL;
+        while ( ( PIR1bits.SSPIF  ==  1U ) && ( timeout1 < 0x3232 ) )
+        {
+            timeout1++;
+        }
+        PIR1bits.SSPIF  =  0U;
+    }
+    
+    /* Generate a STOP condition    */
+    SSPCON2bits.PEN =   1U;
+    
+    /* Wait until STOP condition is generated   */
+    timeout1    =   0UL;
+    while ( ( SSPCON2bits.PEN ==   1U ) && ( timeout1 < 0x323 ) )
+    {
+        timeout1++;
+    }
     
     
-    if ( 1 )
+    if ( timeout1 < 0x323 )
 	{
 		return I2C_SUCCESS;
 	}
@@ -217,8 +280,8 @@ static i2c_status_t i2c_write ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t le
     }
 	PIR1bits.SSPIF  =  0U;
     
-    /* Send the I2C slave address   */
-    SSPBUF  =   dev_addr;
+    /* Send the I2C slave address. Write option   */
+    SSPBUF  =   (uint8_t)( ( dev_addr << 1U ) & 0xFE );
 
     /* Wait for ACK from I2C slave  */
     timeout1    =   0UL;
