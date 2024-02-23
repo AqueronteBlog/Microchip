@@ -84,7 +84,7 @@ void main(void) {
 	
 	/* Configure I2C for external peripheral: TC74	*/
 	static TC74_i2c_comm_t myTC74_i2c = {
-		.i2c.address	= TC74_A5,
+		.i2c.address	= TC74_A4,
 		.i2c.read 		= i2c_read,
 		.i2c.write 		= i2c_write
 	};
@@ -161,75 +161,135 @@ void main(void) {
  *
  * @author      Manuel Caballero
  * @date        17/February/2024
- * @version     17/February/2024   The ORIGIN
+ * @version     23/February/2024   Timeouts were added.
+ *              17/February/2024   The ORIGIN
  * @pre         N/A
- * @warning     N/A
+ * @warning     The timeouts are traced as a common error, not as an individual errors.
  */
 static i2c_status_t i2c_read ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length )
 {
     uint8_t     i   =   0U;
     uint32_t    timeout1    =   0UL;
+          
+    /* Generate a repeated START condition   */
+    SSPCON2bits.RSEN =   1U;
     
-    /* Generate a START condition   */
-    SSPCON2bits.SEN =   1U;
+    /* Wait until the repeated START condition is completed or timeout */
+    while ( ( SSPCON2bits.RSEN  ==  1U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
     
     /* Wait for completion of the START condition or timeout */
-    while ( ( PIR1bits.SSPIF  ==  1U ) && ( timeout1 < 0x3232 ) )
+    timeout1    =   0UL;
+    while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
     {
         timeout1++;
     }
 	PIR1bits.SSPIF  =  0U;
     
-    /* Send the I2C slave address. Read option   */
-    SSPBUF  =   (uint8_t)( ( dev_addr << 1U ) | 0x01 );
-    
-    /* Wait for ACK from I2C slave  */
+    /* Wait until the buffer is free or timeout */
     timeout1    =   0UL;
-    while ( ( SSPCON2bits.ACKSTAT ==  1U ) && ( timeout1 < 0x323 ) )
+    while( ( SSPSTATbits.BF == 1U ) && ( timeout1 < 0x3232 ) )
     {
         timeout1++;
     }
     
-    for ( i = 0U; i < length; i++ )
+    /* Send the I2C slave address. Read option   */
+    SSPBUF  =   (uint8_t)( ( dev_addr << 1U ) | 0x01 );
+    
+    /* Wait until the buffer is free or timeout */
+    timeout1    =   0UL;
+    while( ( SSPSTATbits.BF == 1U ) && ( timeout1 < 0x3232 ) )
     {
-        /* Enables Receive mode for I2C */
+        timeout1++;
+    }
+    
+    /* Wait for the I2C address is sent or timeout */
+    timeout1    =   0UL;
+    while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
+    
+    /* Get data from I2C slave  */
+    for ( i = 0U; i < ( length ); i++ )
+    {
+        /* Enable Receive mode for I2C */
         SSPCON2bits.RCEN    =   1U;
         
-        /* Wait for Receive complete, SSPBUF is full or timeout */
+        /* Wait for Receive mode is enabled or timeout */
         timeout1    =   0UL;
-        while ( ( PIR1bits.SSPIF  ==  1U ) && ( SSPSTATbits.BF  ==  1U ) && ( timeout1 < 0x3232 ) )
+        while ( ( SSPCON2bits.RCEN  ==  1U ) && ( timeout1 < 0x3232 ) )
+        {
+            timeout1++;
+        }
+        
+        /* Wait for Receive mode is enabled or timeout */
+        timeout1    =   0UL;
+        while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
         {
             timeout1++;
         }
         PIR1bits.SSPIF  =  0U;
+        
+        /* Wait for buffer full or timeout */
+        timeout1    =   0UL;
+        while( ( SSPSTATbits.BF == 0U ) && ( timeout1 < 0x3232 ) )
+        {
+            timeout1++;
+        }
         
         /* Read data    */
         i2c_buff[i] =   SSPBUF;
         
-        SSPSTATbits.BF  =  0U;
+        /* ACK/NACK and Initiate Acknowledge sequence    */
+        if ( ( i - ( length - 1 ) ) == 0U )
+        {
+            /* Send a NACK - End of communication   */
+            SSPCON2bits.ACKDT   =   1U; 
+        }
+        else
+        {
+            /* Send a ACK - Communication in progress   */
+            SSPCON2bits.ACKDT   =   0U;
+        }
+        SSPCON2bits.ACKEN   =   1U; 
         
-        /* Acknowledge and Initiate Acknowledge sequence    */
-        SSPCON2bits.ACKDT   =   0U;
-        SSPCON2bits.ACKEN   =   1U;
-        
-        /* Wait for Receive complete, SSPBUF is full or timeout */
+        /* Wait for ACK/NACK to be completed or timeout */
         timeout1    =   0UL;
-        while ( ( PIR1bits.SSPIF  ==  1U ) && ( timeout1 < 0x3232 ) )
+        while ( ( SSPCON2bits.ACKEN  ==  1U ) && ( timeout1 < 0x3232 ) )
+        {
+            timeout1++;
+        }
+        
+        /* Wait for ACK/NACK complete or timeout */
+        timeout1    =   0UL;
+        while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
         {
             timeout1++;
         }
         PIR1bits.SSPIF  =  0U;
+
     }
     
     /* Generate a STOP condition    */
     SSPCON2bits.PEN =   1U;
     
-    /* Wait until STOP condition is generated   */
+    /* Wait for STOP condition to be completed or timeout */
     timeout1    =   0UL;
-    while ( ( SSPCON2bits.PEN ==   1U ) && ( timeout1 < 0x323 ) )
+    while ( ( SSPCON2bits.PEN  ==  1U ) && ( timeout1 < 0x323 ) )
     {
         timeout1++;
     }
+        
+    /* Wait until STOP condition is generated   */
+    timeout1    =   0UL;
+    while ( ( PIR1bits.SSPIF ==   0U ) && ( timeout1 < 0x323 ) )
+    {
+        timeout1++;
+    }
+    PIR1bits.SSPIF  =  0U;
     
     
     if ( timeout1 < 0x323 )
@@ -261,9 +321,10 @@ static i2c_status_t i2c_read ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t len
  *
  * @author      Manuel Caballero
  * @date        17/February/2024
- * @version     17/February/2024   The ORIGIN
+ * @version     23/February/2024   Timeouts were added.
+ *              17/February/2024   The ORIGIN
  * @pre         N/A
- * @warning     N/A
+ * @warning     The timeouts are traced as a common error, not as an individual errors.
  */
 static i2c_status_t i2c_write ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t length, i2c_stop_bit_t i2c_generate_stop )
 {
@@ -273,34 +334,66 @@ static i2c_status_t i2c_write ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t le
     /* Generate a START condition   */
     SSPCON2bits.SEN =   1U;
     
-    /* Wait for completion of the START condition or timeout */
-    while ( ( PIR1bits.SSPIF  ==  1U ) && ( timeout1 < 0x3232 ) )
+    /* Wait until START condition is generated or timeout   */
+    while( SSPCON2bits.SEN == 1U && ( timeout1 < 0x3232 ) )
     {
         timeout1++;
     }
-	PIR1bits.SSPIF  =  0U;
+    
+    /* Wait for completion of the START condition or timeout */
+    timeout1    =   0UL;
+    while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
+    PIR1bits.SSPIF  =  0U;
+    
+    /* Wait for buffer to be free or timeout */
+    timeout1    =   0UL;
+    while( ( SSPSTATbits.BF == 1U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
     
     /* Send the I2C slave address. Write option   */
     SSPBUF  =   (uint8_t)( ( dev_addr << 1U ) & 0xFE );
-
-    /* Wait for ACK from I2C slave  */
+   
+    /* Wait for buffer to be free or timeout */
     timeout1    =   0UL;
-    while ( ( SSPCON2bits.ACKSTAT ==  1U ) && ( timeout1 < 0x323 ) )
+    while( ( SSPSTATbits.BF == 1U ) && ( timeout1 < 0x3232 ) )
     {
         timeout1++;
     }
     
+    /* Wait for address to be transmitted  */
+    timeout1    =   0UL;
+    while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
+    {
+        timeout1++;
+    }
+    PIR1bits.SSPIF  =  0U;
+
+    
+    /* Data to be transmitted   */
     for ( i = 0U; i < length; i++ )
     {
         /* Send data    */
         SSPBUF  =   i2c_buff[i];
         
-        /* Wait for ACK from I2C slave  */
+        /* Wait for buffer to be free or timeout */
         timeout1    =   0UL;
-        while ( ( SSPCON2bits.ACKSTAT ==  1U ) && ( timeout1 < 0x323 ) )
+        while( ( SSPSTATbits.BF == 1U ) && ( timeout1 < 0x3232 ) )
         {
             timeout1++;
         }
+        
+        /* Wait for data to be transmitted or timeout */
+        timeout1    =   0UL;
+        while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x3232 ) )
+        {
+            timeout1++;
+        }
+        PIR1bits.SSPIF  =  0U;
     }
     
     if ( i2c_generate_stop == I2C_STOP_BIT )
@@ -308,12 +401,20 @@ static i2c_status_t i2c_write ( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t le
         /* Generate a STOP condition    */
         SSPCON2bits.PEN =   1U;
     
-        /* Wait until STOP condition is generated   */
+        /* Wait until STOP condition is generated or timeout   */
         timeout1    =   0UL;
-        while ( ( SSPCON2bits.PEN ==   1U ) && ( timeout1 < 0x323 ) )
+        while ( SSPCON2bits.PEN ==   1U && ( timeout1 < 0x3232 ) )
         {
             timeout1++;
         }
+
+        /* Wait until STOP condition is completed or timeout   */
+        timeout1    =   0UL;
+        while ( ( PIR1bits.SSPIF  ==  0U ) && ( timeout1 < 0x323 ) )
+        {
+            timeout1++;
+        }
+        PIR1bits.SSPIF  =  0U;
     }
     
     
