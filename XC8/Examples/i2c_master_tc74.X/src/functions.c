@@ -17,8 +17,8 @@
  * @brief       void conf_CLK ( void )
  * @details     It configures the clocks.
  * 
- *              MFINTOSC
- *                  - 125kHz
+ *              HFINTOSC
+ *                  - 16MHz
  * 
  *
  * @param[in]    N/A.
@@ -39,13 +39,13 @@ void conf_CLK ( void )
     /* 4x PLL is disabled  */
     OSCCONbits.SPLLEN =   0U;
     
-    /* Internal Oscillator Frequency: 125kHz  */
-    OSCCONbits.IRCF =   0b0101;
+    /* Internal Oscillator Frequency: 16MHz  */
+    OSCCONbits.IRCF =   0b1111;
     
     /* Internal oscillator block */
     OSCCONbits.SCS  =   0b11;
     
-    while ( OSCSTATbits.MFIOFR == 0U ); // Wait until MFINTOSC is ready
+    while ( OSCSTATbits.HFIOFR == 0U ); // Wait until HFINTOSC is ready
 }
 
 
