@@ -112,6 +112,36 @@ void conf_GPIO ( void )
 
 
 /**
+ * @brief       void conf_ioc ( void )
+ * @details     It configures the interrupt-on-change peripheral.
+ *              
+ *              IOC
+ *                  - RB0 ioc enabled
+ * 
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        17/February/2024
+ * @version     17/February/2024    The ORIGIN
+ * @pre         N/A
+ * @warning     N/A
+ */
+void conf_ioc ( void )
+{
+    /* RBO ioc negative edge enabled */
+    IOCBNbits.IOCBN0    =   1U;
+    
+    /* Clear the ioc flag associated to RB0 */
+    IOCBFbits.IOCBF0    =   0U;
+}
+
+
+/**
  * @brief       void conf_master_i2c ( void )
  * @details     It configures the I2C peripheral.
  * 
@@ -156,4 +186,85 @@ void conf_master_i2c ( void )
     
     /* Enable the serial port and configures the SDA and SCL pins */
     SSPCON1bits.SSPEN    =   1U;
+}
+
+
+/**
+ * @brief       void conf_eusart ( void )
+ * @details     It configures the EUSART in 16-bit asynchronous mode.
+ *              
+ *              Desire_baudrate = F_OSC/[4·(SPBRG+1)]
+ * 
+ *              EUSART
+ *                  - 16-bit asynchronous mode
+ *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 16000000/(4·115200) ) - 1 ~ 34 (0x0022)
+ *                  - 8-bit reception/transmission
+ *                  - Auto-Baud detect disabled
+ *                  - Receiver interrupt disabled
+ *                  - Transmission interrupt disabled
+ * 
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        28/February/2024
+ * @version     28/February/2024    The ORIGIN
+ * @pre         Error = 100*( 115200 - 114285.714 )/115200 = 0.79%
+ * @warning     N/A
+ */
+void conf_eusart ( void )
+{
+    /* Serial port disabled (held in Reset)    */
+    RCSTAbits.SPEN  =   0U;
+    
+    /* Selects 8-bit reception    */
+    RCSTAbits.RX9  =   0U;
+    
+    /* Disables receiver (Asynchronous mode)    */
+    RCSTAbits.CREN  =   0U;
+    
+    /* Selects 8-bit transmission    */
+    TXSTAbits.TX9   =   0U;
+    
+    /* Transmit disabled    */
+    TXSTAbits.TXEN   =   0U;
+    
+    /* EUSART: Asynchronous mode    */
+    TXSTAbits.SYNC   =   0U;
+    
+    /* EUSART: High speed    */
+    TXSTAbits.BRGH   =   1U;
+    
+    /* Transmit non-inverted data to the TX/CK pin  */
+    BAUDCONbits.SCKP    =   0U;
+    
+    /* 16-bit Baud Rate Generator is used    */
+    BAUDCONbits.BRG16   =   1U;
+    
+    /* Auto-Baud Detect mode is disabled    */
+    BAUDCONbits.ABDEN   =   0U;
+    
+    /* Baudrate value   */
+    SPBRGH  =   0x00;
+    SPBRGL  =   0x22;
+    
+    /* Clear receiver (Rx) and transmission (Tx) interrupt flags   */
+    PIR1bits.RCIF   =   0U;
+    PIR1bits.TXIF   =   0U;
+    
+    /* Disable receiver (Rx) interrupt    */
+    PIE1bits.RCIE   =   0U;
+    
+    /* Disable transmission (Tx) interrupt    */
+    PIE1bits.TXIE   =   0U;
+    
+    /* Disable receiver (Asynchronous mode)    */
+    RCSTAbits.CREN  =   0U;
+    
+    /* Serial port enabled (configures RX/DT and TX/CK pins as serial port pins)    */
+    RCSTAbits.SPEN  =   1U;
 }

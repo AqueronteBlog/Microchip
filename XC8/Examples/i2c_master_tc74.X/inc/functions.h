@@ -24,6 +24,8 @@ extern "C" {
  */
 void conf_CLK           ( void );
 void conf_GPIO          ( void );
+void conf_ioc           ( void );
+void conf_eusart        ( void );
 void conf_master_i2c    ( void );
 
 
