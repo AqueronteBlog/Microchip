@@ -34,8 +34,33 @@ void __interrupt() ISR ( void )
         /* Update the variable  */
         myState =   1U;
         
-        
         /* Clear the interrupt flag   */
         IOCBFbits.IOCBF0 = 0U;
     }
+    
+    /* EUSART. Tx	 */
+	if ( ( PIE1bits.TXIE == 1U ) && ( TXSTAbits.TXEN == 1UL ) )
+	{        
+        /* Wait until Transmit Shift Register Status is empty  */
+        while ( TXSTAbits.TRMT ==  0U );
+        
+		/* Stop transmitting data when that character is found */
+		if ( *myPtr  == '\n' )
+		{            
+            /* Disable transmission    */
+			TXSTAbits.TXEN  =   0UL;
+            
+            /* Enable interrupts    */
+            INTCONbits.IOCIE    =   1U; // Enable the interrupt-on-change
+            INTCONbits.PEIE     =   0U; // Disable all active peripheral interrupts
+		}
+		else
+		{
+			TXREG	 =	 *myPtr;
+            myPtr++;
+		}
+        
+        /* Clear Tx Interrupt flag  */
+        PIR1bits.TXIF = 0U; 
+	}
 }
