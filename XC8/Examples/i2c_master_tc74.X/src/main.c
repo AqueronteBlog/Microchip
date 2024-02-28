@@ -1,8 +1,9 @@
 /**
  * @brief       main.c
- * @details     [todo]This example shows how to work with the internal peripheral: Interrupt-On-Change (IOC).
+ * @details     This example shows how to work with the internal peripheral: I2C as master.
  * 
- *              Every time the switch S3 is pushed, D5 changes its state.
+ *              Every time the switch S3 is pushed, the external I2C sensor TC74 is read and its
+ *              temperature value is sent through the EUSART.
  * 
  *              The microcontroller is in SLEEP mode the rest of the time.
  *
@@ -61,9 +62,13 @@
 #define ACK_VAL             	0x00    /*!< I2C ack value */
 #define NACK_VAL            	0x01    /*!< I2C nack value */
 
+#define EUSART_BUFF 16  /*!< EUSART buffer */      
+
+
 /**@brief Variables.
  */
-volatile uint8_t myState;
+volatile uint8_t    myState;    /*!< State that indicates when to perform the next action */
+volatile uint8_t    *myPtr;     /*!< Pointer to point out myMessage   */
 
 /**@brief Function prototypes.
  */
@@ -79,6 +84,8 @@ static i2c_status_t	i2c_read	( uint8_t dev_addr, uint8_t* i2c_buff, uint32_t len
 /**@brief Function for application main entry.
  */
 void main(void) {
+    uint8_t my_message[EUSART_BUFF] = {0};
+    
     TC74_data_t     myTC74_param = { 0 };	
 	TC74_status_t   err = TC74_SUCCESS;
 	
@@ -91,7 +98,9 @@ void main(void) {
     
     conf_CLK        ();
     conf_GPIO       ();
+    conf_eusart     ();
     conf_master_i2c ();
+    conf_ioc        ();
     
     /* Disable TC74  */
     myTC74_param.config.standby =   CONFIG_STANDBY_STANDBY;
@@ -108,8 +117,8 @@ void main(void) {
     while ( 1U )
     {
         /* Check if an interrupt is triggered by TMR2 or TMR6    */
-        //if ( myState != 0U )
-        //{
+        if ( myState != 0U )
+        {
             /* D5 LED on    */
             LATB    |=  D5;
             
@@ -130,17 +139,34 @@ void main(void) {
             myTC74_param.config.standby =   CONFIG_STANDBY_STANDBY;
             err =   TC74_SetConfig  ( &myTC74_i2c, myTC74_param.config.standby );
             
-            /* Reset the variable  */
-            myState =   0U;
+            /* Pack the message  */
+            sprintf ((char*)my_message, "Temp = %d C\r\n", (int8_t)( myTC74_param.raw_temperature ));
+            
+           /* Transmit data over the EUSART	 */
+			myPtr    =   &my_message[0];
+            
+            /* Reset variables	 */
+			myState	 =	 0U;
+            
+            /* Enable interrupts    */
+            INTCONbits.IOCIE    =   0U; // Disable the interrupt-on-change
+            INTCONbits.PEIE     =   1U; // Enable all active peripheral interrupts
+            
+            /* Enables the EUSART transmit interrupt	 */
+			PIE1bits.TXIE = 1UL;
+            
+            /* Disables receiver and enable transmission    */
+            RCSTAbits.CREN  =   0U;
+            TXSTAbits.TXEN  =   1UL;
             
             /* D5 LED off    */
             LATB    &=  ~D5;
-        //}
-        //else
-        //{
+        }
+        else
+        {
             /* Sleep mode */
-         //   SLEEP();
-        //}
+            SLEEP();
+        }
     }
 }
 
