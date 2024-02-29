@@ -103,3 +103,6 @@ XC8/Examples/eusart_asynchronous.X/dist/default/production/
 *Makefile
 XC8/Examples/pwm_standard.X/dist/default/production/pwm_standard.X.production.hex
 XC8/Examples/ioc.X/dist/default/production/ioc.X.production.hex
+XC8/Examples/i2c_master_tc74.X/dist/default/production/i2c_master_tc74.X.production.hex
+XC8/Examples/i2c_master_tc74.X/Proteus_Simulation/i2c_master_tc74.pdsprj
+XC8/Examples/i2c_master_tc74.X/Proteus_Simulation/i2c_master_tc74.X.production.hex
