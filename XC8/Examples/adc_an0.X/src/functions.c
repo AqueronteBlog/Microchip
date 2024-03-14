@@ -60,6 +60,7 @@ void conf_clk ( void )
  *                  - RB3: GPIO Output pin, no pull-up
  *              
  *              PORTA
+ *                  - RA0: GPIO Analog Input pin (AN0)
  *                  - RA4: GPIO Input pin
  * 
  *              PORTC
@@ -75,7 +76,8 @@ void conf_clk ( void )
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     10/February/2024    EUSART pins are configured
+ * @version     14/March/2024       RA0 as an AN0 pin
+ *              10/February/2024    EUSART pins are configured
  *              15/December/2023    Turn all the LEDs off
  *                                  RA4 as an input pin
  *              08/December/2023    The ORIGIN
@@ -105,11 +107,73 @@ void conf_gpio ( void )
     /* RA4 as an input pin */
     TRISA   |=  S2;
     
+    /* RA0 as an analog input   */
+    ANSELAbits.ANSA0    =   1U;
+    
     /* RC7 as an input pin */
     TRISC   |=  RX;
     
     /* RC6 as an output pin */
     TRISC   &=  ~( TX );
+}
+
+
+/**
+ * @brief       void conf_adc ( void )
+ * @details     It configures the ADC peripheral.
+ *              
+ *              ADC
+ *                  - AN0 channel enabled
+ *                  - Right justified result format
+ *                  - ADC clock: FRC (clock supplied from a dedicated RC oscillator)
+ *                  - VREF- is connected to VSS
+ *                  - VREF+ is connected to VDD
+ * 
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        14/March/2024
+ * @version     14/March/2024    The ORIGIN
+ * @pre         TADMmax@FRC ~ 6us 
+ * @pre         New ADC conversion timing =  TACQ + TCNV = TACQ + 11.5*TAD = 5us + 11.5*6us = 74us 
+ * @warning     The user must respect the TACQ before start a new ADC conversion! TACQtyp ~ 5us
+ * @warning     The user must respect the TCNV before start a new ADC conversion! TCNVtyp ~ 11.5*TAD
+ */
+void conf_adc ( void )
+{
+    /* ADC disabled    */
+    ADCON0bits.ADON  =   0U;
+    
+    /* AN0 channel enabled    */
+    ADCON0bits.CHS  =   0b00000;
+    
+    /* ADC result format: Right justified   */
+    ADCON1bits.ADFM =   1U;
+    
+    /* ADC Conversion Clock: FRC (clock supplied from a dedicated RC oscillator)   */
+    ADCON1bits.ADCS =   0b111;
+    
+    /* VREF- is connected to VSS   */
+    ADCON1bits.ADNREF   =   0U;
+    
+    /* VREF+ is connected to VDD   */
+    ADCON1bits.ADPREF   =   0b00;
+    
+    /* ADC enabled    */
+    ADCON0bits.ADON  =   1U;
+    
+    // The user must respect the TACQ before start a new ADC conversion! TACQtyp ~ 5us 
+    
+    /* Clear ADC interrupt flag */
+    PIR1bits.ADIF   =   0U;
+    
+    /* Enable Interrupt */
+    PIE1bits.ADIE   =   1U;
 }
 
 
@@ -124,7 +188,7 @@ void conf_gpio ( void )
  *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 16000000/(4·115200) ) - 1 ~ 34 (0x0022)
  *                  - 8-bit reception/transmission
  *                  - Auto-Baud detect disabled
- *                  - Receiver interrupt enabled
+ *                  - Receiver interrupt disabled
  *                  - Transmission interrupt disabled
  * 
  * @param[in]    N/A.
@@ -136,7 +200,8 @@ void conf_gpio ( void )
  *
  * @author      Manuel Caballero
  * @date        10/February/2024
- * @version     10/February/2024    The ORIGIN
+ * @version     14/March/2024       Rx is disabled
+ *              10/February/2024    The ORIGIN
  * @pre         Error = 100*( 115200 - 114285.714 )/115200 = 0.79%
  * @warning     N/A
  */
@@ -180,15 +245,9 @@ void conf_eusart ( void )
     PIR1bits.RCIF   =   0U;
     PIR1bits.TXIF   =   0U;
     
-    /* Enable receiver (Rx) interrupt    */
-    PIE1bits.RCIE   =   1U;
-    
     /* Disable transmission (Tx) interrupt    */
     PIE1bits.TXIE   =   0U;
-    
-    /* Enable receiver (Asynchronous mode)    */
-    RCSTAbits.CREN  =   1U;
-    
+        
     /* Serial port enabled (configures RX/DT and TX/CK pins as serial port pins)    */
     RCSTAbits.SPEN  =   1U;
 }
