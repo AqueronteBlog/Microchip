@@ -60,11 +60,20 @@
  */
 #define EUSART_BUFF 16
 
+typedef enum{
+  SLEEP                 = 0U,      /*!<   Sleep mode    */
+  WAIT_TIMER            = 1U,      /*!<   Wait until timer overlows for new ADC measurement    */
+  NEW_ADC_AN0           = 2U,      /*!<   New ADC measurement    */
+  SEND_DATA_OVER_UART   = 3U,      /*!<   Send data over the UART    */
+  WAIT_DATA_TRANSMITTED = 4U       /*!<   Wait until data is sent over the UART    */
+} my_states_t;
 
 /**@brief Variables.
  */
-volatile uint8_t    myState;    /* State that indicates when to perform the next action */
-volatile uint8_t    *myPtr;     /* Pointer to point out myMessage   */
+my_states_t         myState;        /* State that indicates when to perform the next action */
+volatile uint8_t    *myPtr;         /* Pointer to point out myMessage   */
+volatile uint8_t    myFlag;         /* Flag that indicates either if the Timer overflows (0b11), the ADC measurement is transmitted over the UART (0b01) or ADC finishes the current measurement conversion (0b10) */
+volatile uint16_t   myADCresult;    /* ADC result */
 
 /**@brief Function for application main entry.
  */
@@ -73,21 +82,9 @@ void main(void) {
     
     conf_clk    ();
     conf_gpio   ();
+    conf_adc    ();
     conf_eusart ();
-    
-    /* Initiate variable  */
-    my_message[0]   =   'L';
-    my_message[1]   =   'E';
-    my_message[2]   =   'D';
-    my_message[3]   =   ' ';
-    my_message[4]   =   'D';
-    my_message[5]   =   '5';
-    my_message[6]   =   ' ';
-    my_message[7]   =   '0';
-    my_message[8]   =   'F';
-    my_message[9]   =   'F';
-    my_message[10]  =   '\n';
-    
+       
     /* Enable interrupts    */
     INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
     INTCONbits.GIE  =   1U; // Enables all active interrupts
@@ -97,62 +94,82 @@ void main(void) {
     
     while ( 1U )
     {
-        if ( myState != 0U )
+        switch ( myState )
 		{
-            /* Reset variable  */
-            my_message[5]   =   '5';
-            my_message[6]   =   ' ';
-            my_message[7]   =   'O';
-    
-			switch ( myState )
-			{
-				case '1':
-					/* Turn D5 on	 */
-					LATB    |=  D5;
-					my_message[8]   =   'N';
-                    my_message[9]  =   '\n';
-					break;
-
-				case '2':
-					/* Turn D5 off	 */
-					LATB    &=  ~D5;
-					my_message[8]   =   'F';
-                    my_message[9]   =   'F';
-                    my_message[10]  =   '\n';
-					break;
-
-				default:
-					/* Turn D5 off	 */
-					LATB    &=  ~D5; 
-
-					/* Initialized the message	 */
-					my_message[ 7 ]   =  'E';
-					my_message[ 8 ]   =  'R';
-					my_message[ 9 ]   =  'R';
-					my_message[ 10 ]  =  'O';
-					my_message[ 11 ]  =  'R';
-					my_message[ 12 ]  =  '!';
-                    my_message[ 13 ]  =  '\n';
-					break;
-			}
+            default:
+            case WAIT_TIMER:
+                if ( myFlag == 0b11 )
+                {
+                    /* Reset flag   */
+                    myFlag  =   0U;
+                    
+                    /* Next state   */
+                    myState =  NEW_ADC_AN0; 
+                }
+                else
+                {
+                    /* Do nothing   */
+                }
+                break;
+                
+            case NEW_ADC_AN0:
+                /* Reset variable to store the ADC value    */
+                myADCresult =   0U;
+                
+                /* Start a new ADC sampling   */
+                ADCON0bits.GO_nDONE  =   1U;
+                
+                /* Next state   */
+                myState =  SLEEP; 
+                break;
+                
+            case SEND_DATA_OVER_UART:
+                /* Pack the message  */
+                sprintf ((char*)my_message, "V = %d V\r\n", ( myADCresult ));
+                
+                /* Transmit data  */
+                myPtr    =   &my_message[0];
             
-            /* Transmit data back	 */
-			myPtr    =   &my_message[0];
+                /* Reset variables	 */
+                myState	 =	 0U;
             
-            /* Reset variables	 */
-			myState	 =	 0U;
+                /* Enables the USART transmit interrupt	 */
+                PIE1bits.TXIE = 1UL;
             
-            /* Enables the USART transmit interrupt	 */
-			PIE1bits.TXIE = 1UL;
+                /* Enable transmission    */
+                TXSTAbits.TXEN  =   1UL;
+                
+                /* Next state   */
+                myState =  WAIT_DATA_TRANSMITTED; 
+                break;
+                
+            case WAIT_DATA_TRANSMITTED:
+                if ( myFlag ==   0b01 )
+                {
+                    /* Reset flag   */
+                    myFlag  =   0U;
+                    
+                    /* Next state   */
+                    myState =  WAIT_TIMER; 
+                }
+                else
+                {
+                    /* Do nothing   */
+                }
+                break;    
             
-            /* Disables receiver and enable transmission    */
-            RCSTAbits.CREN  =   0U;
-            TXSTAbits.TXEN  =   1UL;
-        }
-        else
-        {
-            /* Do nothing   */
-            // SLEEP();
+            case SLEEP:
+                SLEEP();
+                
+                if ( myFlag ==   0b10 )
+                {
+                    /* Reset flag   */
+                    myFlag  =   0U;
+                    
+                    /* Next state   */
+                    myState =  SEND_DATA_OVER_UART; 
+                }
+                break;                
         }
     }
 }
