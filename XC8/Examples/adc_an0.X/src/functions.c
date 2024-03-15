@@ -18,7 +18,7 @@
  * @details     It configures the clocks.
  * 
  *              HFINTOSC
- *                  - 16MHz
+ *                  - 1MHz
  * 
  *
  * @param[in]    N/A.
@@ -39,8 +39,8 @@ void conf_clk ( void )
     /* 4x PLL is disabled  */
     OSCCONbits.SPLLEN =   0U;
     
-    /* Internal Oscillator Frequency: 16MHz  */
-    OSCCONbits.IRCF =   0b1111;
+    /* Internal Oscillator Frequency: 1MHz  */
+    OSCCONbits.IRCF =   0b1011;
     
     /* Internal oscillator block */
     OSCCONbits.SCS  =   0b11;
@@ -119,6 +119,54 @@ void conf_gpio ( void )
 
 
 /**
+ * @brief       void conf_Timer2 ( void )
+ * @details     It configures the Timer2.
+ *              
+ *              TMR2_flag ( TMR2 = PR2 ) = ( 1/( f_Timer2_OSC/4 ) )·Prescaler
+ * 
+ *              Timer2
+ *                  - TMR2 overflows every 65.28ms
+ *                  - f_Timer2_OSC = 1MHz
+ *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 65.28ms / ( 64*4·( 1/1000000 ) ] = 255
+ *                  - TMR2 flag enabled every 0.26s: 65.28ms*Postcaler = 65.28ms*4 ~ 0.26s 
+ *                  - Timer2 interrupt enabled
+ * 
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        15/March/2024
+ * @version     15/March/2024    The ORIGIN
+ * @pre         N/A
+ * @warning     N/A
+ */
+void conf_Timer2 ( void )
+{
+    /* Stops Timer2 */
+    T2CONbits.TMR2ON   =  0U;
+        
+    /* Prescaler is 64 */
+    T2CONbits.T2CKPS   =  0b11;
+    
+    /* 1:4 Postscaler */
+    T2CONbits.T2OUTPS   =  0b0011;
+    
+    /* Timer2 overflows every 65.28ms ( TMR2 = PR2 )  */
+    PR2    =   255U;
+    
+    /* Clear Timer2 interrupt flag */
+    PIR1bits.TMR2IF   =   0U;
+    
+    /* Timer2 interrupt enabled */
+    PIE1bits.TMR2IE   =   1U;
+}
+
+
+/**
  * @brief       void conf_adc ( void )
  * @details     It configures the ADC peripheral.
  *              
@@ -185,7 +233,8 @@ void conf_adc ( void )
  * 
  *              EUSART
  *                  - 16-bit asynchronous mode
- *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 16000000/(4·115200) ) - 1 ~ 34 (0x0022)
+ *                  - F_OSC = 1MHz
+ *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 1000000/(4·115200) ) - 1 ~ 1 (0x0001)
  *                  - 8-bit reception/transmission
  *                  - Auto-Baud detect disabled
  *                  - Receiver interrupt disabled
@@ -200,9 +249,9 @@ void conf_adc ( void )
  *
  * @author      Manuel Caballero
  * @date        10/February/2024
- * @version     14/March/2024       Rx is disabled
+ * @version     14/March/2024       Rx is disabled, F_OSC = 1MHz
  *              10/February/2024    The ORIGIN
- * @pre         Error = 100*( 115200 - 114285.714 )/115200 = 0.79%
+ * @pre         Error = 100*( 115200 - 125000 )/115200 = 8.5%
  * @warning     N/A
  */
 void conf_eusart ( void )
@@ -239,7 +288,7 @@ void conf_eusart ( void )
     
     /* Baudrate value   */
     SPBRGH  =   0x00;
-    SPBRGL  =   0x22;
+    SPBRGL  =   0x01;
     
     /* Clear receiver (Rx) and transmission (Tx) interrupt flags   */
     PIR1bits.RCIF   =   0U;
