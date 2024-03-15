@@ -60,6 +60,7 @@ void conf_clk ( void )
  *                  - RB3: GPIO Output pin, no pull-up
  *              
  *              PORTA
+ *                  - RA2: GPIO Output pin
  *                  - RA4: GPIO Input pin
  * 
  *
@@ -72,7 +73,8 @@ void conf_clk ( void )
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     15/December/2023    Turn all the LEDs off
+ * @version     15/March/2024       RA2 as a digital output
+ *              15/December/2023    Turn all the LEDs off
  *                                  RA4 as an input pin
  *              08/December/2023    The ORIGIN
  * @pre         N/A
@@ -98,6 +100,9 @@ void conf_gpio ( void )
     /* RA4 as a digital I/O pin */
     ANSELA  &=  ~( S2 );
     
+    /* RA2 (DACOUT) as a digital output pin */
+    //TRISAbits.TRISA2    =   0U;
+    
     /* RA4 as an input pin */
     TRISA   |=  S2;
 }
@@ -110,10 +115,10 @@ void conf_gpio ( void )
  *              TMR2_flag ( TMR2 = PR2 ) = ( 1/( f_Timer2_OSC/4 ) )·Prescaler
  * 
  *              Timer2
- *                  - TMR2 overflows every 0.5s
- *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 0.5 / ( 64*4·( 1/125000 ) ] ~ 244
- *                  - TMR2 flag enabled every 0.5s: 0.5s*Postcaler = 0.5*1 = 0.5s 
- *                  - Timer2 interrupt enabled
+ *                  - TMR2 overflows every 0.25s
+ *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 0.25 / ( 64*4·( 1/125000 ) ] ~ 122
+ *                  - TMR2 flag enabled every 0.25s: 0.25s*Postcaler = 0.25*1 = 0.25s 
+ *                  - Timer2 interrupt disabled
  * 
  * @param[in]    N/A.
  *
@@ -123,9 +128,9 @@ void conf_gpio ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
- * @pre         Error = 100*( 0.5 - 0.4997 )/0.5 = 0.06%
+ * @date        15/March/2024
+ * @version     15/March/2024    The ORIGIN
+ * @pre         Error = 100*( 0.25 - 0.249856 )/0.25 ~ 0.06%
  * @warning     N/A
  */
 void conf_timer2 ( void )
@@ -139,28 +144,27 @@ void conf_timer2 ( void )
     /* 1:1 Postscaler */
     T2CONbits.T2OUTPS   =  0b0000;
     
-    /* Timer2 overflows every 0.5s ( TMR2 = PR2 )  */
-    PR2    =   244U;
+    /* Timer2 overflows every 0.25s ( TMR2 = PR2 )  */
+    PR2    =   122U;
     
     /* Clear Timer2 interrupt flag */
     PIR1bits.TMR2IF   =   0U;
     
-    /* Timer2 interrupt enabled */
-    PIE1bits.TMR2IE   =   1U;
+    /* Timer2 interrupt disabled */
+    PIE1bits.TMR2IE   =   0U;
 }
 
 
 /**
  * @brief       void conf_dac ( void )
- * @details     [todo]It configures the Timer4.
+ * @details     It configures the DAC with DACOUT pin enabled.
  *              
- *              TMR4_flag ( TMR4 = PR4 ) = ( 1/( f_Timer4_OSC/4 ) )·Prescaler
+ *              V_DAC_OUT = [ ( V_SOURCE+ - V_SOURCE- ) * ( DACR<4:0> / 32 ) } + V_SOURCE-
  * 
- *              Timer4
- *                  - TMR2 overflows every 0.5s
- *                  - PR4 = [ TMR4_flag / ( 4·Prescaler·( 1/f_Timer4_OSC ) ] = [ 0.5 / ( 64*4·( 1/125000 ) ] ~ 244
- *                  - TMR4 Flag enabled every 1s: 0.5s*Postcaler = 0.5*2 = 1s 
- *                  - Timer4 interrupt disabled
+ *              DAC
+ *                  - DAC Positive Source = VDD
+ *                  - DAC Negative Source = VSS
+ *                  - DAC voltage level is also an output on the DACOUT pin
  * 
  * @param[in]    N/A.
  *
@@ -177,6 +181,21 @@ void conf_timer2 ( void )
  */
 void conf_dac ( void )
 {
-    /* Stops Timer4 */
+    /* DAC disabled */
+    DACCON0bits.DACEN   =   0U;
+      
+    /* DAC Positive Source = VDD */
+    DACCON0bits.DACPSS   =   0b00;
     
+    /* DAC Negative Source = VSS */
+    DACCON0bits.DACNSS   =   0U;
+    
+    /* DAC out starts as 0 value */
+    DACCON1bits.DACR    =   0b00000;
+    
+    /* DAC voltage level is also an output on the DACOUT pin    */
+    DACCON0bits.DACOE   =   1U;
+    
+    /* DAC enabled */
+    DACCON0bits.DACEN   =   1U;
 }
