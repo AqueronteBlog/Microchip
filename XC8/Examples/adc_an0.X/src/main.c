@@ -63,7 +63,10 @@
 
 /**@brief Constants.
  */
-#define EUSART_BUFF 16
+#define EUSART_BUFF 16U
+
+#define ADC_VDD_REF 5.0               /*!<   ADC VDD = 5V    */  
+#define ADC_RES     ( 1024.0 - 1.0 )  /*!<   ADC 10-bit resolution    */  
 
 typedef enum{
   SM_SLEEP                 = 0U,      /*!<   Sleep mode    */
@@ -127,11 +130,14 @@ void main(void) {
                 break;
                 
             case SM_NEW_ADC_AN0:
+                LATB    |=  D5;
+                
                 /* Reset variable to store the ADC value    */
                 myADCresult =   0U;
                 
-                /* Start a new ADC sampling   */
-                ADCON0bits.GO_nDONE  =   1U;
+                /* ADC enabled and start a new ADC sampling   */
+                ADCON0bits.ADON     =   1U;
+                ADCON0bits.GO_nDONE =   1U;
                 
                 /* Next state   */
                 myState =  SM_SLEEP; 
@@ -141,8 +147,8 @@ void main(void) {
                 /* D5 LED on    */
                 LATB    |=  D5;
                 
-                /* Pack the message  */
-                sprintf ((char*)my_message, "V = %d V\r\n", ( myADCresult ));
+                /* Pack the message. Turn ADC data into voltage data  */
+                sprintf ((char*)my_message, "V = %0.2f V\r\n", (float)( ( ADC_VDD_REF * myADCresult ) / ADC_RES ));
                 
                 /* Transmit data  */
                 myPtr    =   &my_message[0];
@@ -182,7 +188,7 @@ void main(void) {
                 break;    
             
             case SM_SLEEP:
-                SLEEP();
+                //SLEEP();
                 
                 if ( myFlag ==   0b10 )
                 {
