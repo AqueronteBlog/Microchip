@@ -1,10 +1,11 @@
 /**
  * @brief       main.c
- * @details     [todo] This example shows how to work with the internal peripheral: Timer2/4/6.
+ * @details     This example shows how to work with the internal peripheral: DAC with DACOUT pin enabled.
  * 
- *              Timer1 will generate an interrupt every 0.5s changing the state of the D5 LED.
- *              Timer2 will change the state of the D4 LED every 1s by polling.
- *              Timer6 will generate an interrupt every 1.5s changing the state of the D3 LED.
+ *              A Triangle wave is generated on DACOUT (RA2) pin. The DAC output is updated every 0.26s by
+ *              the Timer 2 (polling mode).
+ *              
+ *              D5 LED indicates when the triangle wave goes up (D5 on) or down (D5 off).
  *
  * @return      N/A
  *
@@ -53,42 +54,88 @@
 
 /**@brief Constants.
  */
-
+#define DAC_RESOLUTION  ( 32U - 1U )    /*!< DAC resolution: 5-bit */
 
 /**@brief Variables.
+ */ 
+
+/**@brief Function prototypes.
  */
-volatile uint8_t myState;   
+/** Timer2 delay function.
+  */
+static void timer2_delay ( void );
 
 /**@brief Function for application main entry.
  */
 void main(void) {
+    uint8_t dac_out =   0U;
+    
     conf_clk    ();
     conf_gpio   ();
+    conf_dac    ();
     conf_timer2 ();
     
-    /* Enable interrupts    */
-    INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
-    INTCONbits.GIE  =   1U; // Enables all active interrupts
+    /* Disable interrupts    */
+    INTCONbits.PEIE =   0U; // Disable all active peripheral interrupts
+    INTCONbits.GIE  =   0U; // Disable all active interrupts
     
     /* Start timers */
     T2CONbits.TMR2ON   =  1U;
     
     /* Reset the variables  */
-    myState =   0U;
+    dac_out =   0U;
     
     while ( 1U )
     {
-        /* Update DAC output value    */
-        if ( myState != 0U )
+        /* DAC output value goes up, turn D5 LED on */
+        LATB    |=  D5;
+        for ( dac_out = 0U; dac_out < DAC_RESOLUTION; dac_out++ )
         {
-            /* LED D5 on    */
-            LATB   |=  D5;
+            /* Update DAC out value */
+            DACCON1bits.DACR    =   dac_out;
             
-            /* Reset the variable  */
-            myState =   0U;
+            /* Delay for the next DAC output value  */
+            timer2_delay ();
+        }
+        
+        /* DAC output value goes down, turn D5 LED off */
+         LATB    &=  ~D5;
+        for ( dac_out = DAC_RESOLUTION; dac_out > 0U; dac_out-- )
+        {
+            /* Update DAC out value */
+            DACCON1bits.DACR    =   dac_out;
             
-            /* LED D5 off    */
-            LATB    &=  ~D5;
+            /* Delay for the next DAC output value  */
+            timer2_delay ();
         }
     }
+}
+
+
+/**
+ * @brief       void timer2_delay ( void )
+ * @details     Timer2 delay function, it waits until Timer2 overflows.
+ *
+ *
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        15/March/2024
+ * @version     15/March/2024   The ORIGIN
+ * @pre         N/A
+ * @warning     It is recommended to add a timeout to unblock this function in case of an unexpected issue.
+ *              This is a blocking function.
+ */
+static void timer2_delay ( void )
+{
+    /* [Polling] Wait until Timer2 overflows */
+    while ( PIR1bits.TMR2IF == 0U );                  
+            
+    /* Clear the interrupt flag   */
+    PIR1bits.TMR2IF = 0U;
 }
