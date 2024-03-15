@@ -1,13 +1,17 @@
 /**
  * @brief       main.c
- * @details     [todo] This example shows how to work with the internal peripheral: EUSART as asynchronous mode.
+ * @details     [todo] This example shows how to work with the internal peripheral: ADC channel AN0 enabled.
  * 
- *              D5 LED changes its state depending on what it is received over the UART:
- *                  - D5 LED ON:    1, it is received from the UART.
- *                  - D5 LED OFF:   2, it is received from the UART.
+ *              The code is led by a state machine.
  *              
- *              Anytime a character is received, it will transmit the state of D5 LED, if
- *              another character is received, D5 LED turns off and an error message is sent over the UART.
+ *                  - SM_SLEEP:                 It waits until the ADC completes a new measurement.
+ *                  - SM_WAIT_TIMER:            It indicates when a new ADC measurement is needed [default].
+ *                  - SM_NEW_ADC_AN0:           It makes the ADC start a new measurement.
+ *                  - SM_SEND_DATA_OVER_UART:   It sends the ADC measurement over the UART.
+ *                  - SM_WAIT_DATA_TRANSMITTED: It waits until the ADC measurement is sent over the UART.
+ *              
+ *              Every ~0.26s, a new value on AN0 pin will be transmitted over the UART. The SLEEP mode is only
+ *              used to wait for the ADC module to complete a new measurement.  
  * 
  *
  * @return      N/A
@@ -17,6 +21,7 @@
  * @version     14/March/2024    The ORIGIN
  * @pre         This project was tested on a PIC16F1937 using a PICDEM 2 Plus.
  * @pre         In asynchronous mode, the SLEEP mode cannot be used due to EUSART clock source (F_OSC).
+ * @pre         The SLEEP mode cannot be used for the Timer2 due to Timer2/4/6 clock source (F_OSC).
  * @warning     N/A
  * @pre         This code belongs to AqueronteBlog. 
  *                  - GitHub:  https://github.com/AqueronteBlog
@@ -61,16 +66,16 @@
 #define EUSART_BUFF 16
 
 typedef enum{
-  SLEEP                 = 0U,      /*!<   Sleep mode    */
-  WAIT_TIMER            = 1U,      /*!<   Wait until timer overlows for new ADC measurement    */
-  NEW_ADC_AN0           = 2U,      /*!<   New ADC measurement    */
-  SEND_DATA_OVER_UART   = 3U,      /*!<   Send data over the UART    */
-  WAIT_DATA_TRANSMITTED = 4U       /*!<   Wait until data is sent over the UART    */
-} my_states_t;
+  SM_SLEEP                 = 0U,      /*!<   Sleep mode    */
+  SM_WAIT_TIMER            = 1U,      /*!<   Wait until timer overlows for new ADC measurement    */
+  SM_NEW_ADC_AN0           = 2U,      /*!<   New ADC measurement    */
+  SM_SEND_DATA_OVER_UART   = 3U,      /*!<   Send data over the UART    */
+  SM_WAIT_DATA_TRANSMITTED = 4U       /*!<   Wait until data is sent over the UART    */
+} my_sm_t;
 
 /**@brief Variables.
  */
-my_states_t         myState;        /* State that indicates when to perform the next action */
+my_sm_t             myState;        /* State that indicates when to perform the next action */
 volatile uint8_t    *myPtr;         /* Pointer to point out myMessage   */
 volatile uint8_t    myFlag;         /* Flag that indicates either if the Timer overflows (0b11), the ADC measurement is transmitted over the UART (0b01) or ADC finishes the current measurement conversion (0b10) */
 volatile uint16_t   myADCresult;    /* ADC result */
@@ -84,27 +89,36 @@ void main(void) {
     conf_gpio   ();
     conf_adc    ();
     conf_eusart ();
+    conf_Timer2 ();
        
     /* Enable interrupts    */
     INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
     INTCONbits.GIE  =   1U; // Enables all active interrupts
     
+    /* Start timer */
+    T2CONbits.TMR2ON   =  1U;
+    
     /* Reset variables  */
-    myState =   0U;
+    myState =   SM_WAIT_TIMER;
+    myFlag  =   0U;
     
     while ( 1U )
     {
+        /* State machine    */
         switch ( myState )
 		{
             default:
-            case WAIT_TIMER:
+            case SM_WAIT_TIMER:
                 if ( myFlag == 0b11 )
                 {
+                    /* Stop timer */
+                    T2CONbits.TMR2ON   =  0U;
+    
                     /* Reset flag   */
                     myFlag  =   0U;
                     
                     /* Next state   */
-                    myState =  NEW_ADC_AN0; 
+                    myState =  SM_NEW_ADC_AN0; 
                 }
                 else
                 {
@@ -112,7 +126,7 @@ void main(void) {
                 }
                 break;
                 
-            case NEW_ADC_AN0:
+            case SM_NEW_ADC_AN0:
                 /* Reset variable to store the ADC value    */
                 myADCresult =   0U;
                 
@@ -120,10 +134,13 @@ void main(void) {
                 ADCON0bits.GO_nDONE  =   1U;
                 
                 /* Next state   */
-                myState =  SLEEP; 
+                myState =  SM_SLEEP; 
                 break;
                 
-            case SEND_DATA_OVER_UART:
+            case SM_SEND_DATA_OVER_UART:
+                /* D5 LED on    */
+                LATB    |=  D5;
+                
                 /* Pack the message  */
                 sprintf ((char*)my_message, "V = %d V\r\n", ( myADCresult ));
                 
@@ -140,17 +157,23 @@ void main(void) {
                 TXSTAbits.TXEN  =   1UL;
                 
                 /* Next state   */
-                myState =  WAIT_DATA_TRANSMITTED; 
+                myState =  SM_WAIT_DATA_TRANSMITTED; 
                 break;
                 
-            case WAIT_DATA_TRANSMITTED:
+            case SM_WAIT_DATA_TRANSMITTED:
                 if ( myFlag ==   0b01 )
                 {
+                    /* D5 LED off    */
+                    LATB    &=  ~D5;
+                
                     /* Reset flag   */
                     myFlag  =   0U;
                     
+                    /* Start timer */
+                    T2CONbits.TMR2ON   =  1U;
+                    
                     /* Next state   */
-                    myState =  WAIT_TIMER; 
+                    myState =  SM_WAIT_TIMER; 
                 }
                 else
                 {
@@ -158,7 +181,7 @@ void main(void) {
                 }
                 break;    
             
-            case SLEEP:
+            case SM_SLEEP:
                 SLEEP();
                 
                 if ( myFlag ==   0b10 )
@@ -167,7 +190,7 @@ void main(void) {
                     myFlag  =   0U;
                     
                     /* Next state   */
-                    myState =  SEND_DATA_OVER_UART; 
+                    myState =  SM_SEND_DATA_OVER_UART; 
                 }
                 break;                
         }
