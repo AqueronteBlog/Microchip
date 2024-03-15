@@ -28,6 +28,17 @@
  */
 void __interrupt() ISR ( void )
 {
+    /* Check if Timer2 Overflow interrupt is enabled and Timer2 Overflow occurred */
+    if ( ( PIE1bits.TMR2IE == 1U  ) && ( PIR1bits.TMR2IF == 1U ) )
+    {        
+        /* Indicates that the timer overflows  */
+        myFlag  =   0b11;
+        
+        
+        /* Clear the interrupt flag   */
+        PIR1bits.TMR2IF = 0U;
+    }
+    
     /* Tx	 */
 	if ( ( PIE1bits.TXIE == 1U ) && ( TXSTAbits.TXEN == 1UL ) )
 	{        
