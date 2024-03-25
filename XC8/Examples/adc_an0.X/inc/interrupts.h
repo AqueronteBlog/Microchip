@@ -32,9 +32,9 @@ void __interrupt() ISR ( void );
 
 /**@brief Variables.
  */
-extern volatile uint8_t myState;
-extern volatile uint8_t *myPtr;
-
+extern volatile uint8_t     myFlag;
+extern volatile uint8_t     *myPtr;
+extern volatile uint16_t    myADCresult;
 
 #ifdef __cplusplus
 }

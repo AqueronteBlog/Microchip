@@ -28,25 +28,18 @@
  */
 void __interrupt() ISR ( void )
 {
-    /* Rx	 */
-	if ( ( PIE1bits.RCIE == 1U ) && ( PIR1bits.RCIF == 1U ) )
-	{
-        /* Check Overrun error  */
-        if ( RCSTAbits.OERR ==  1U )
-        {
-            /* Clear flag. If the receive FIFO is overrun, no additional characters will be 
-             * received until the overrun condition is cleared   */
-            RCSTAbits.OERR =  0U;
-        }
+    /* Check if Timer2 Overflow interrupt is enabled and Timer2 Overflow occurred */
+    if ( ( PIE1bits.TMR2IE == 1U  ) && ( PIR1bits.TMR2IF == 1U ) )
+    {        
+        /* Indicates that the timer overflows  */
+        myFlag  =   0b11;
         
-		/* Next action	 */
-		myState	 =	 RCREG;
         
-        /* Clear Rx Interrupt flag  */
-        PIR1bits.RCIF = 0U; 
-	}
-
-	/* Tx	 */
+        /* Clear the interrupt flag   */
+        PIR1bits.TMR2IF = 0U;
+    }
+    
+    /* Tx	 */
 	if ( ( PIE1bits.TXIE == 1U ) && ( TXSTAbits.TXEN == 1UL ) )
 	{        
         /* Wait until Transmit Shift Register Status is empty  */
@@ -55,9 +48,11 @@ void __interrupt() ISR ( void )
 		/* Stop transmitting data when that character is found */
 		if ( *myPtr  == '\n' )
 		{            
-            /* Disable transmission and enable reception again    */
+            /* Disable transmission   */
 			TXSTAbits.TXEN  =   0UL;
-            RCSTAbits.CREN  =   1U;
+            
+            /* Indicates that the transmission is completed */
+            myFlag  =   0b01;
 		}
 		else
 		{
@@ -67,5 +62,20 @@ void __interrupt() ISR ( void )
         
         /* Clear Tx Interrupt flag  */
         PIR1bits.TXIF = 0U; 
+	}
+    
+    /* ADC	 */
+	if ( ( PIE1bits.ADIE == 1U ) && ( PIR1bits.ADIF == 1UL ) )
+	{        
+        /* Get the ADC measurement (right alignment)  */
+        myADCresult =   ADRESH;
+        myADCresult <<= 8U;
+        myADCresult |=  ADRESL;
+		
+        /* Indicates that the ADC data is completed */
+        myFlag  =   0b10;
+            
+        /* Clear ADC Interrupt flag  */
+        PIR1bits.ADIF = 0U; 
 	}
 }

@@ -24,7 +24,9 @@ extern "C" {
  */
 void conf_clk       ( void );
 void conf_gpio      ( void );
+void conf_adc       ( void );
 void conf_eusart    ( void );
+void conf_Timer2    ( void );
 
 
 /**@brief Constants.
