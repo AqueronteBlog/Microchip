@@ -1,6 +1,6 @@
 /**
  * @brief       main.c
- * @details     [todo] This example shows how to work with the internal peripheral: ADC channel AN0 enabled.
+ * @details     This example shows how to work with the internal peripheral: ADC channel AN0 enabled.
  * 
  *              The code is led by a state machine.
  *              
@@ -22,7 +22,7 @@
  * @pre         This project was tested on a PIC16F1937 using a PICDEM 2 Plus.
  * @pre         In asynchronous mode, the SLEEP mode cannot be used due to EUSART clock source (F_OSC).
  * @pre         The SLEEP mode cannot be used for the Timer2 due to Timer2/4/6 clock source (F_OSC).
- * @warning     N/A
+ * @warning     [Errata] The ADC doesn't seem to wake the uC up after an ADC conversion.
  * @pre         This code belongs to AqueronteBlog. 
  *                  - GitHub:  https://github.com/AqueronteBlog
  *                  - YouTube: https://www.youtube.com/user/AqueronteBlog

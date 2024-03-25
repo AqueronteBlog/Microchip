@@ -204,7 +204,7 @@ void conf_adc ( void )
     ADCON1bits.ADFM =   1U;
     
     /* ADC Conversion Clock: FRC (clock supplied from a dedicated RC oscillator)   */
-    ADCON1bits.ADCS =   0b111;
+    ADCON1bits.ADCS =   0b011;
     
     /* VREF- is connected to VSS   */
     ADCON1bits.ADNREF   =   0U;
