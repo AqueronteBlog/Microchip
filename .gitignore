@@ -107,3 +107,4 @@ XC8/Examples/i2c_master_tc74.X/dist/default/production/i2c_master_tc74.X.product
 XC8/Examples/i2c_master_tc74.X/Proteus_Simulation/i2c_master_tc74.pdsprj
 XC8/Examples/i2c_master_tc74.X/Proteus_Simulation/i2c_master_tc74.X.production.hex
 XC8/Examples/dac.X/dist/default/production/dac.X.production.hex
+XC8/Examples/adc_internal_temperature.X/dist/default/production/adc_internal_temperature.X.production.hex
