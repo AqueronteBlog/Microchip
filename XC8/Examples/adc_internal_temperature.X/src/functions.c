@@ -18,7 +18,7 @@
  * @details     It configures the clocks.
  * 
  *              HFINTOSC
- *                  - 1MHz
+ *                  - 8MHz
  * 
  *
  * @param[in]    N/A.
@@ -29,8 +29,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        10/February/2024
- * @version     10/February/2024    The ORIGIN
+ * @date        27/March/2024
+ * @version     27/March/2024    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -39,8 +39,8 @@ void conf_clk ( void )
     /* 4x PLL is disabled  */
     OSCCONbits.SPLLEN =   0U;
     
-    /* Internal Oscillator Frequency: 1MHz  */
-    OSCCONbits.IRCF =   0b1011;
+    /* Internal Oscillator Frequency: 8MHz  */
+    OSCCONbits.IRCF =   0b1110;
     
     /* Internal oscillator block */
     OSCCONbits.SCS  =   0b11;
@@ -125,10 +125,10 @@ void conf_gpio ( void )
  *              TMR2_flag ( TMR2 = PR2 ) = ( 1/( f_Timer2_OSC/4 ) )·Prescaler
  * 
  *              Timer2
- *                  - TMR2 overflows every 65.28ms
- *                  - f_Timer2_OSC = 1MHz
- *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 65.28ms / ( 64*4·( 1/1000000 ) ] = 255
- *                  - TMR2 flag enabled every 0.26s: 65.28ms*Postcaler = 65.28ms*4 ~ 0.26s 
+ *                  - TMR2 overflows every 8.16ms
+ *                  - f_Timer2_OSC = 8MHz
+ *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 8.16ms / ( 64*4·( 1/8000000 ) ] = 255
+ *                  - TMR2 flag enabled every 0.13s: 8.16ms*Postcaler = 8.16ms*16 ~ 0.13s 
  *                  - Timer2 interrupt enabled
  * 
  * @param[in]    N/A.
@@ -139,8 +139,8 @@ void conf_gpio ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        15/March/2024
- * @version     15/March/2024    The ORIGIN
+ * @date        27/March/2024
+ * @version     27/March/2024    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -152,10 +152,10 @@ void conf_Timer2 ( void )
     /* Prescaler is 64 */
     T2CONbits.T2CKPS   =  0b11;
     
-    /* 1:4 Postscaler */
-    T2CONbits.T2OUTPS   =  0b0011;
+    /* 1:16 Postscaler */
+    T2CONbits.T2OUTPS   =  0b1111;
     
-    /* Timer2 overflows every 65.28ms ( TMR2 = PR2 )  */
+    /* Timer2 overflows every 8.16ms ( TMR2 = PR2 )  */
     PR2    =   255U;
     
     /* Clear Timer2 interrupt flag */
@@ -171,7 +171,8 @@ void conf_Timer2 ( void )
  * @details     It configures the ADC peripheral.
  *              
  *              ADC
- *                  - AN0 channel enabled
+ *                  - Temperature Indicator is enabled
+ *                  - VOUT = VDD - 4VT (High Range)
  *                  - Right justified result format
  *                  - ADC clock: FRC (clock supplied from a dedicated RC oscillator)
  *                  - VREF- is connected to VSS
@@ -185,20 +186,19 @@ void conf_Timer2 ( void )
  * @return      N/A
  *
  * @author      Manuel Caballero
- * @date        14/March/2024
- * @version     14/March/2024    The ORIGIN
- * @pre         TADMmax@FRC ~ 6us 
- * @pre         New ADC conversion timing =  TACQ + TCNV = TACQ + 11.5*TAD = 5us + 11.5*6us = 74us 
- * @warning     The user must respect the TACQ before start a new ADC conversion! TACQtyp ~ 5us
- * @warning     The user must respect the TCNV before start a new ADC conversion! TCNVtyp ~ 11.5*TAD
+ * @date        27/March/2024
+ * @version     27/March/2024    The ORIGIN
+ * @pre         N/A 
+ * @warning     The user must respect the TACQ before start a new ADC conversion! TACQtyp ~ 200us
+ * @warning     The user must respect the TCNV before start a new ADC conversion! TCNVtyp ~ 200us
  */
 void conf_adc ( void )
 {
     /* ADC disabled    */
     ADCON0bits.ADON  =   0U;
     
-    /* AN0 channel enabled    */
-    ADCON0bits.CHS  =   0b00000;
+    /* Temperature Indicator channel enabled    */
+    ADCON0bits.CHS  =   0b11101;
     
     /* ADC result format: Right justified   */
     ADCON1bits.ADFM =   1U;
@@ -212,10 +212,16 @@ void conf_adc ( void )
     /* VREF+ is connected to VDD   */
     ADCON1bits.ADPREF   =   0b00;
     
+    /* VOUT = VDD - 4VT (High Range)    */
+    FVRCONbits.TSRNG    =   1U;
+    
+    /* Temperature Indicator is enabled    */
+    FVRCONbits.TSEN    =   1U;
+    
     /* ADC enabled    */
     ADCON0bits.ADON  =   1U;
     
-    // The user must respect the TACQ before start a new ADC conversion! TACQtyp ~ 5us 
+    // the user must wait at least 200us after the ADC input multiplexer is connected to the temperature indicator output before the conversion is performed 
     
     /* Clear ADC interrupt flag */
     PIR1bits.ADIF   =   0U;
@@ -233,8 +239,8 @@ void conf_adc ( void )
  * 
  *              EUSART
  *                  - 16-bit asynchronous mode
- *                  - F_OSC = 1MHz
- *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 1000000/(4·115200) ) - 1 ~ 1 (0x0001)
+ *                  - F_OSC = 8MHz
+ *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 8000000/(4·115200) ) - 1 ~ 16 (0x0010)
  *                  - 8-bit reception/transmission
  *                  - Auto-Baud detect disabled
  *                  - Receiver interrupt disabled
@@ -249,9 +255,9 @@ void conf_adc ( void )
  *
  * @author      Manuel Caballero
  * @date        10/February/2024
- * @version     14/March/2024       Rx is disabled, F_OSC = 1MHz
+ * @version     27/March/2024       Rx is disabled, F_OSC = 8MHz
  *              10/February/2024    The ORIGIN
- * @pre         Error = 100*( 115200 - 125000 )/115200 = 8.5%
+ * @pre         Error = 100*( 115200 - 117647 )/115200 = 2.12%
  * @warning     N/A
  */
 void conf_eusart ( void )
@@ -288,7 +294,7 @@ void conf_eusart ( void )
     
     /* Baudrate value   */
     SPBRGH  =   0x00;
-    SPBRGL  =   0x01;
+    SPBRGL  =   0x10;
     
     /* Clear receiver (Rx) and transmission (Tx) interrupt flags   */
     PIR1bits.RCIF   =   0U;
