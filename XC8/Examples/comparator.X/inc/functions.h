@@ -5,8 +5,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero (aqueronteblog@gmail.com)
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
+ * @date        27/March/2024
+ * @version     27/March/2024    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -22,11 +22,9 @@ extern "C" {
 
 /**@brief Function prototypes.
  */
-void conf_clk       ( void );
-void conf_gpio      ( void );
-void conf_adc       ( void );
-void conf_eusart    ( void );
-void conf_Timer2    ( void );
+void conf_clk           ( void );
+void conf_gpio          ( void );
+void conf_comparator    ( void );
 
 
 /**@brief Constants.

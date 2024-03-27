@@ -18,7 +18,7 @@
  * @details     It configures the clocks.
  * 
  *              HFINTOSC
- *                  - 8MHz
+ *                  - 2MHz
  * 
  *
  * @param[in]    N/A.
@@ -39,8 +39,8 @@ void conf_clk ( void )
     /* 4x PLL is disabled  */
     OSCCONbits.SPLLEN =   0U;
     
-    /* Internal Oscillator Frequency: 8MHz  */
-    OSCCONbits.IRCF =   0b1110;
+    /* Internal Oscillator Frequency: 2MHz  */
+    OSCCONbits.IRCF =   0b1100;
     
     /* Internal oscillator block */
     OSCCONbits.SCS  =   0b11;
@@ -60,7 +60,8 @@ void conf_clk ( void )
  *                  - RB3: GPIO Output pin, no pull-up
  *              
  *              PORTA
- *                  - RA0: GPIO Analog Input pin (AN0)
+ *                  - RA0: GPIO Analog Input pin (C12IN0-)
+ *                  - RA3: GPIO Analog Input pin (C1IN+)
  *                  - RA4: GPIO Input pin
  * 
  *              PORTC
@@ -76,7 +77,7 @@ void conf_clk ( void )
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     14/March/2024       RA0 as an AN0 pin
+ * @version     27/March/2024       RA3 as a C1IN+ and RA0 as an C12IN0- pin
  *              10/February/2024    EUSART pins are configured
  *              15/December/2023    Turn all the LEDs off
  *                                  RA4 as an input pin
@@ -107,8 +108,9 @@ void conf_gpio ( void )
     /* RA4 as an input pin */
     TRISA   |=  S2;
     
-    /* RA0 as an analog input   */
+    /* RA0 and RA3 as analog inputs   */
     ANSELAbits.ANSA0    =   1U;
+    ANSELAbits.ANSA3    =   1U;
     
     /* RC7 as an input pin */
     TRISC   |=  RX;
@@ -119,64 +121,19 @@ void conf_gpio ( void )
 
 
 /**
- * @brief       void conf_Timer2 ( void )
- * @details     It configures the Timer2.
+ * @brief       void conf_comparator ( void )
+ * @details     It configures the comparator peripheral.
  *              
- *              TMR2_flag ( TMR2 = PR2 ) = ( 1/( f_Timer2_OSC/4 ) )·Prescaler
- * 
- *              Timer2
- *                  - TMR2 overflows every 8.16ms
- *                  - f_Timer2_OSC = 8MHz
- *                  - PR2 = [ TMR2_flag / ( 4·Prescaler·( 1/f_Timer2_OSC ) ] = [ 8.16ms / ( 64*4·( 1/8000000 ) ] = 255
- *                  - TMR2 flag enabled every 0.13s: 8.16ms*Postcaler = 8.16ms*16 ~ 0.13s 
- *                  - Timer2 interrupt enabled
- * 
- * @param[in]    N/A.
- *
- * @param[out]   N/A.
- *
- *
- * @return      N/A
- *
- * @author      Manuel Caballero
- * @date        27/March/2024
- * @version     27/March/2024    The ORIGIN
- * @pre         N/A
- * @warning     N/A
- */
-void conf_Timer2 ( void )
-{
-    /* Stops Timer2 */
-    T2CONbits.TMR2ON   =  0U;
-        
-    /* Prescaler is 64 */
-    T2CONbits.T2CKPS   =  0b11;
-    
-    /* 1:16 Postscaler */
-    T2CONbits.T2OUTPS   =  0b1111;
-    
-    /* Timer2 overflows every 8.16ms ( TMR2 = PR2 )  */
-    PR2    =   255U;
-    
-    /* Clear Timer2 interrupt flag */
-    PIR1bits.TMR2IF   =   0U;
-    
-    /* Timer2 interrupt enabled */
-    PIE1bits.TMR2IE   =   1U;
-}
-
-
-/**
- * @brief       void conf_adc ( void )
- * @details     It configures the ADC peripheral.
- *              
- *              ADC
- *                  - Temperature Indicator is enabled
- *                  - VOUT = VDD - 4VT (High Range)
- *                  - Right justified result format
- *                  - ADC clock: FRC (clock supplied from a dedicated RC oscillator)
- *                  - VREF- is connected to VSS
- *                  - VREF+ is connected to VDD
+ *              C1 comparator
+ *                  - Comparator output is not inverted
+ *                  - C1VP connects to C1IN+ pin
+ *                  - C1VN connects to C12IN0- pin
+ *                  - The C1IF interrupt flag will be set upon a positive going edge of the C1OUT bit
+ *                  - The C1IF interrupt flag will be set upon a negative going edge of the C1OUT bit
+ *                  - Comparator Output is internal only
+ *                  - Comparator operates in low-power, low-speed mode
+ *                  - Comparator hysteresis disabled
+ *                  - Interrupt enabled
  * 
  * @param[in]    N/A.
  *
@@ -189,120 +146,43 @@ void conf_Timer2 ( void )
  * @date        27/March/2024
  * @version     27/March/2024    The ORIGIN
  * @pre         N/A 
- * @warning     The user must respect the TACQ before start a new ADC conversion! TACQtyp ~ 200us
- * @warning     The user must respect the TCNV before start a new ADC conversion! TCNVtyp ~ 200us
- */
-void conf_adc ( void )
-{
-    /* ADC disabled    */
-    ADCON0bits.ADON  =   0U;
-    
-    /* Temperature Indicator channel enabled    */
-    ADCON0bits.CHS  =   0b11101;
-    
-    /* ADC result format: Right justified   */
-    ADCON1bits.ADFM =   1U;
-    
-    /* ADC Conversion Clock: FRC (clock supplied from a dedicated RC oscillator)   */
-    ADCON1bits.ADCS =   0b011;
-    
-    /* VREF- is connected to VSS   */
-    ADCON1bits.ADNREF   =   0U;
-    
-    /* VREF+ is connected to VDD   */
-    ADCON1bits.ADPREF   =   0b00;
-    
-    /* VOUT = VDD - 4VT (High Range)    */
-    FVRCONbits.TSRNG    =   1U;
-    
-    /* Temperature Indicator is enabled    */
-    FVRCONbits.TSEN    =   1U;
-    
-    /* ADC enabled    */
-    ADCON0bits.ADON  =   1U;
-    
-    // the user must wait at least 200us after the ADC input multiplexer is connected to the temperature indicator output before the conversion is performed 
-    
-    /* Clear ADC interrupt flag */
-    PIR1bits.ADIF   =   0U;
-    
-    /* Enable Interrupt */
-    PIE1bits.ADIE   =   1U;
-}
-
-
-/**
- * @brief       void conf_eusart ( void )
- * @details     It configures the EUSART in 16-bit asynchronous mode.
- *              
- *              Desire_baudrate = F_OSC/[4·(SPBRG+1)]
- * 
- *              EUSART
- *                  - 16-bit asynchronous mode
- *                  - F_OSC = 8MHz
- *                  - SPBRG = ( F_OSC/(4·Desire_baudrate) ) - 1 = ( 8000000/(4·115200) ) - 1 ~ 16 (0x0010)
- *                  - 8-bit reception/transmission
- *                  - Auto-Baud detect disabled
- *                  - Receiver interrupt disabled
- *                  - Transmission interrupt disabled
- * 
- * @param[in]    N/A.
- *
- * @param[out]   N/A.
- *
- *
- * @return      N/A
- *
- * @author      Manuel Caballero
- * @date        10/February/2024
- * @version     27/March/2024       Rx is disabled, F_OSC = 8MHz
- *              10/February/2024    The ORIGIN
- * @pre         Error = 100*( 115200 - 117647 )/115200 = 2.12%
  * @warning     N/A
  */
-void conf_eusart ( void )
+void conf_comparator ( void )
 {
-    /* Serial port disabled (held in Reset)    */
-    RCSTAbits.SPEN  =   0U;
+    /* Comparator disabled    */
+    CM1CON0bits.C1ON  =   0U;
     
-    /* Selects 8-bit reception    */
-    RCSTAbits.RX9  =   0U;
+    /* Comparator output is not inverted    */
+    CM1CON0bits.C1POL  =   0U;
     
-    /* Disables receiver (Asynchronous mode)    */
-    RCSTAbits.CREN  =   0U;
+    /* Comparator Output is internal only    */
+    CM1CON0bits.C1OE  =   0U;
     
-    /* Selects 8-bit transmission    */
-    TXSTAbits.TX9   =   0U;
+    /* Comparator operates in low-power, low-speed mode    */
+    CM1CON0bits.C1SP  =   0U;
     
-    /* Transmit disabled    */
-    TXSTAbits.TXEN   =   0U;
+    /* Comparator hysteresis disabled    */
+    CM1CON0bits.C1HYS  =   0U;
     
-    /* EUSART: Asynchronous mode    */
-    TXSTAbits.SYNC   =   0U;
+    /* C1VP connects to C1IN+ pin   */
+    CM1CON1bits.C1PCH   =   0b00;
     
-    /* EUSART: High speed    */
-    TXSTAbits.BRGH   =   1U;
+    /* Comparator Output Enabled   */
+    CM1CON1bits.C1NCH   =   0b00;
     
-    /* Transmit non-inverted data to the TX/CK pin  */
-    BAUDCONbits.SCKP    =   0U;
+    /* The C1IF interrupt flag will be set upon a positive going edge of the C1OUT bit   */
+    CM1CON1bits.C1INTP   =   1U;
     
-    /* 16-bit Baud Rate Generator is used    */
-    BAUDCONbits.BRG16   =   1U;
+    /* The C1IF interrupt flag will be set upon a negative going edge of the C1OUT bit   */
+    CM1CON1bits.C1INTN   =   1U;
     
-    /* Auto-Baud Detect mode is disabled    */
-    BAUDCONbits.ABDEN   =   0U;
-    
-    /* Baudrate value   */
-    SPBRGH  =   0x00;
-    SPBRGL  =   0x10;
-    
-    /* Clear receiver (Rx) and transmission (Tx) interrupt flags   */
-    PIR1bits.RCIF   =   0U;
-    PIR1bits.TXIF   =   0U;
-    
-    /* Disable transmission (Tx) interrupt    */
-    PIE1bits.TXIE   =   0U;
+    /* Comparator enabled    */
+    CM1CON0bits.C1ON  =   1U;
         
-    /* Serial port enabled (configures RX/DT and TX/CK pins as serial port pins)    */
-    RCSTAbits.SPEN  =   1U;
+    /* Clear C1 comparator interrupt flag */
+    PIR2bits.C1IF   =   0U;
+    
+    /* Enable Interrupt */
+    PIE2bits.C1IE   =   1U;
 }
