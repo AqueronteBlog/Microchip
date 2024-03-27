@@ -1,17 +1,13 @@
 /**
  * @brief       main.c
- * @details     [todo] This example shows how to work with the internal peripheral: ADC channel Internal Temperature sensor enabled.
+ * @details     This example shows how to work with the internal peripheral: Comparator (C1).
  * 
- *              The code is led by a state machine.
- *              
- *                  - SM_SLEEP:                 It waits until the ADC completes a new measurement.
- *                  - SM_WAIT_TIMER:            It indicates when a new ADC measurement is needed [default].
- *                  - SM_NEW_ADC_TEMP:          It makes the ADC start a new measurement.
- *                  - SM_SEND_DATA_OVER_UART:   It sends the ADC measurement over the UART.
- *                  - SM_WAIT_DATA_TRANSMITTED: It waits until the ADC measurement is sent over the UART.
- *              
- *              Every ~0.13s, a new value of the internal temperature sensor will be transmitted over the UART. The SLEEP mode is only
- *              used to wait for the ADC module to complete a new measurement.  
+ *              C1- (RA0 -> C12IN0-) is the reference voltage while C1+ (RA3 -> C1IN+) is the input value.
+ *              The D5 LED changes its state depending of C1 comparator:
+ *                  - D5 LED ON:    C1+ > C1-
+ *                  - D5 LED OFF:   C1+ <= C1-
+ *                             
+ *              The microcontroller is in SLEEP mode the rest of the time.  
  * 
  *
  * @return      N/A
@@ -20,9 +16,7 @@
  * @date        27/March/2024
  * @version     27/March/2024    The ORIGIN
  * @pre         This project was tested on a PIC16F1937 using a PICDEM 2 Plus.
- * @pre         In asynchronous mode, the SLEEP mode cannot be used due to EUSART clock source (F_OSC).
- * @pre         The SLEEP mode cannot be used for the Timer2 due to Timer2/4/6 clock source (F_OSC).
- * @warning     The temperature conversion needs to be calibrated for each microcontroller device, check: "AN1333. Use and Calibration of the Internal Temperature Indicator"
+ * @warning     N/A
  * @pre         This code belongs to AqueronteBlog. 
  *                  - GitHub:  https://github.com/AqueronteBlog
  *                  - YouTube: https://www.youtube.com/user/AqueronteBlog
@@ -63,142 +57,48 @@
 
 /**@brief Constants.
  */
-#define EUSART_BUFF 16U
-
-#define ADC_VDD_REF     5.0                 /*!<   ADC VDD = 5V    */
-#define ADC_RES         ( 1024.0 - 1.0 )    /*!<   ADC 10-bit resolution    */  
-
-typedef enum{
-  SM_SLEEP                 = 0U,      /*!<   Sleep mode    */
-  SM_WAIT_TIMER            = 1U,      /*!<   Wait until timer overlows for new ADC measurement    */
-  SM_NEW_ADC_TEMP          = 2U,      /*!<   New ADC measurement    */
-  SM_SEND_DATA_OVER_UART   = 3U,      /*!<   Send data over the UART    */
-  SM_WAIT_DATA_TRANSMITTED = 4U       /*!<   Wait until data is sent over the UART    */
-} my_sm_t;
 
 /**@brief Variables.
  */
-my_sm_t             myState;        /* State that indicates when to perform the next action */
-volatile uint8_t    *myPtr;         /* Pointer to point out myMessage   */
-volatile uint8_t    myFlag;         /* Flag that indicates either if the Timer overflows (0b11), the ADC measurement is transmitted over the UART (0b01) or ADC finishes the current measurement conversion (0b10) */
-volatile uint16_t   myADCresult;    /* ADC result */
+volatile uint8_t    myFlag;         /* Flag that indicates if there is a change by the comparator module */
 
 /**@brief Function for application main entry.
  */
-void main(void) {
-    uint8_t my_message[EUSART_BUFF] = {0};
-    
-    conf_clk    ();
-    conf_gpio   ();
-    conf_adc    ();
-    conf_eusart ();
-    conf_Timer2 ();
+void main(void) {    
+    conf_clk        ();
+    conf_gpio       ();
+    conf_comparator ();
        
     /* Enable interrupts    */
     INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
     INTCONbits.GIE  =   1U; // Enables all active interrupts
     
-    /* Start timer */
-    T2CONbits.TMR2ON   =  1U;
-    
     /* Reset variables  */
-    myState =   SM_WAIT_TIMER;
     myFlag  =   0U;
     
     while ( 1U )
     {
-        /* State machine    */
-        switch ( myState )
-		{
-            default:
-            case SM_WAIT_TIMER:
-                if ( myFlag == 0b11 )
-                {
-                    /* Stop timer */
-                    T2CONbits.TMR2ON   =  0U;
-    
-                    /* Reset flag   */
-                    myFlag  =   0U;
-                    
-                    /* Next state   */
-                    myState =  SM_NEW_ADC_TEMP; 
-                }
-                else
-                {
-                    /* Do nothing   */
-                }
-                break;
-                
-            case SM_NEW_ADC_TEMP:
+       /* Change the state of the D5 LED depending of C1 output, go to sleep mode otherwise */
+        if ( myFlag != 0U )
+        {
+            /* Check comparator output  */
+            if ( CMOUTbits.MC1OUT == 0U )
+            {
+                /* If comparator output is low, D5 LED is off then   */
+                LATB    &=  ~D5;
+            }
+            else
+            {
+                /* If comparator output is high, D5 LED is on then   */
                 LATB    |=  D5;
-                
-                /* Reset variable to store the ADC value    */
-                myADCresult =   0U;
-                
-                /* ADC enabled and start a new ADC sampling   */
-                ADCON0bits.ADON     =   1U;
-                ADCON0bits.GO_nDONE =   1U;
-                
-                /* Next state   */
-                myState =  SM_SLEEP; 
-                break;
-                
-            case SM_SEND_DATA_OVER_UART:
-                /* D5 LED on    */
-                LATB    |=  D5;
-                
-                /* Pack the message. Turn ADC data into voltage data  */
-                sprintf ((char*)my_message, "ADC_temp = %d | Vtemp = %0.2f V\r\n", myADCresult, (float)( ( ADC_VDD_REF * myADCresult ) / ADC_RES ));
-                
-                /* Transmit data  */
-                myPtr    =   &my_message[0];
+            }
             
-                /* Reset variables	 */
-                myState	 =	 0U;
-            
-                /* Enables the USART transmit interrupt	 */
-                PIE1bits.TXIE = 1UL;
-            
-                /* Enable transmission    */
-                TXSTAbits.TXEN  =   1UL;
-                
-                /* Next state   */
-                myState =  SM_WAIT_DATA_TRANSMITTED; 
-                break;
-                
-            case SM_WAIT_DATA_TRANSMITTED:
-                if ( myFlag ==   0b01 )
-                {
-                    /* D5 LED off    */
-                    LATB    &=  ~D5;
-                
-                    /* Reset flag   */
-                    myFlag  =   0U;
-                    
-                    /* Start timer */
-                    T2CONbits.TMR2ON   =  1U;
-                    
-                    /* Next state   */
-                    myState =  SM_WAIT_TIMER; 
-                }
-                else
-                {
-                    /* Do nothing   */
-                }
-                break;    
-            
-            case SM_SLEEP:
-                SLEEP();
-                
-                if ( myFlag ==   0b10 )
-                {
-                    /* Reset flag   */
-                    myFlag  =   0U;
-                    
-                    /* Next state   */
-                    myState =  SM_SEND_DATA_OVER_UART; 
-                }
-                break;                
+            /* Reset variable  */
+            myFlag  =   0U;  
+        }
+        else
+        {
+            SLEEP();
         }
     }
 }
