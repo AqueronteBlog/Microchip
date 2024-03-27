@@ -5,8 +5,8 @@
  * @return      N/A
  *
  * @author      Manuel Caballero (aqueronteblog@gmail.com)
- * @date        09/February/2024
- * @version     09/February/2024    The ORIGIN
+ * @date        27/March/2024
+ * @version     27/March/2024    The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -33,8 +33,6 @@ void __interrupt() ISR ( void );
 /**@brief Variables.
  */
 extern volatile uint8_t     myFlag;
-extern volatile uint8_t     *myPtr;
-extern volatile uint16_t    myADCresult;
 
 #ifdef __cplusplus
 }
