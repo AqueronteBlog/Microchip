@@ -1,16 +1,16 @@
 /**
  * @brief       main.c
- * @details     [todo] This example shows how to work with the internal peripheral: ADC channel AN0 enabled.
+ * @details     This example shows how to work with the internal peripheral: ADC channel Internal Temperature sensor enabled.
  * 
  *              The code is led by a state machine.
  *              
  *                  - SM_SLEEP:                 It waits until the ADC completes a new measurement.
  *                  - SM_WAIT_TIMER:            It indicates when a new ADC measurement is needed [default].
- *                  - SM_NEW_ADC_AN0:           It makes the ADC start a new measurement.
+ *                  - SM_NEW_ADC_TEMP:          It makes the ADC start a new measurement.
  *                  - SM_SEND_DATA_OVER_UART:   It sends the ADC measurement over the UART.
  *                  - SM_WAIT_DATA_TRANSMITTED: It waits until the ADC measurement is sent over the UART.
  *              
- *              Every ~0.26s, a new value on AN0 pin will be transmitted over the UART. The SLEEP mode is only
+ *              Every ~0.13s, a new value of the internal temperature sensor will be transmitted over the UART. The SLEEP mode is only
  *              used to wait for the ADC module to complete a new measurement.  
  * 
  *
@@ -22,7 +22,7 @@
  * @pre         This project was tested on a PIC16F1937 using a PICDEM 2 Plus.
  * @pre         In asynchronous mode, the SLEEP mode cannot be used due to EUSART clock source (F_OSC).
  * @pre         The SLEEP mode cannot be used for the Timer2 due to Timer2/4/6 clock source (F_OSC).
- * @warning     [Errata] The ADC doesn't seem to wake the uC up after an ADC conversion.
+ * @warning     The temperature conversion needs to be calibrated for each microcontroller device, check: "AN1333. Use and Calibration of the Internal Temperature Indicator"
  * @pre         This code belongs to AqueronteBlog. 
  *                  - GitHub:  https://github.com/AqueronteBlog
  *                  - YouTube: https://www.youtube.com/user/AqueronteBlog
@@ -65,13 +65,13 @@
  */
 #define EUSART_BUFF 16U
 
-#define ADC_VDD_REF 5.0               /*!<   ADC VDD = 5V    */  
-#define ADC_RES     ( 1024.0 - 1.0 )  /*!<   ADC 10-bit resolution    */  
+#define ADC_VDD_REF     5.0                 /*!<   ADC VDD = 5V    */
+#define ADC_RES         ( 1024.0 - 1.0 )    /*!<   ADC 10-bit resolution    */  
 
 typedef enum{
   SM_SLEEP                 = 0U,      /*!<   Sleep mode    */
   SM_WAIT_TIMER            = 1U,      /*!<   Wait until timer overlows for new ADC measurement    */
-  SM_NEW_ADC_AN0           = 2U,      /*!<   New ADC measurement    */
+  SM_NEW_ADC_TEMP          = 2U,      /*!<   New ADC measurement    */
   SM_SEND_DATA_OVER_UART   = 3U,      /*!<   Send data over the UART    */
   SM_WAIT_DATA_TRANSMITTED = 4U       /*!<   Wait until data is sent over the UART    */
 } my_sm_t;
@@ -121,7 +121,7 @@ void main(void) {
                     myFlag  =   0U;
                     
                     /* Next state   */
-                    myState =  SM_NEW_ADC_AN0; 
+                    myState =  SM_NEW_ADC_TEMP; 
                 }
                 else
                 {
@@ -129,7 +129,7 @@ void main(void) {
                 }
                 break;
                 
-            case SM_NEW_ADC_AN0:
+            case SM_NEW_ADC_TEMP:
                 LATB    |=  D5;
                 
                 /* Reset variable to store the ADC value    */
@@ -148,7 +148,7 @@ void main(void) {
                 LATB    |=  D5;
                 
                 /* Pack the message. Turn ADC data into voltage data  */
-                sprintf ((char*)my_message, "V = %0.2f V\r\n", (float)( ( ADC_VDD_REF * myADCresult ) / ADC_RES ));
+                sprintf ((char*)my_message, "ADC_temp = %d | Vtemp = %0.2f V\r\n", myADCresult, (float)( ( ADC_VDD_REF * myADCresult ) / ADC_RES ));
                 
                 /* Transmit data  */
                 myPtr    =   &my_message[0];
@@ -188,7 +188,7 @@ void main(void) {
                 break;    
             
             case SM_SLEEP:
-                //SLEEP();
+                SLEEP();
                 
                 if ( myFlag ==   0b10 )
                 {
