@@ -22,7 +22,6 @@ extern "C" {
 
 /**@brief Subroutine prototypes.
  */
-void __interrupt() ISR ( void );
 
 
 /**@brief Constants.
@@ -32,7 +31,6 @@ void __interrupt() ISR ( void );
 
 /**@brief Variables.
  */
-extern volatile uint8_t     myFlag;
 
 #ifdef __cplusplus
 }
