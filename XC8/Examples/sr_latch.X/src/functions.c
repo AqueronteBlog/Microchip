@@ -18,7 +18,7 @@
  * @details     It configures the clocks.
  * 
  *              HFINTOSC
- *                  - 2MHz
+ *                  - 1MHz
  * 
  *
  * @param[in]    N/A.
@@ -39,8 +39,8 @@ void conf_clk ( void )
     /* 4x PLL is disabled  */
     OSCCONbits.SPLLEN =   0U;
     
-    /* Internal Oscillator Frequency: 2MHz  */
-    OSCCONbits.IRCF =   0b1100;
+    /* Internal Oscillator Frequency: 1MHz  */
+    OSCCONbits.IRCF =   0b1011;
     
     /* Internal oscillator block */
     OSCCONbits.SCS  =   0b11;
@@ -60,12 +60,8 @@ void conf_clk ( void )
  *                  - RB3: GPIO Output pin, no pull-up
  *              
  *              PORTA
- *                  - RA0: GPIO Analog Input pin (C12IN0-)
- *                  - RA3: GPIO Analog Input pin (C1IN+)
- *                  - RA4: GPIO Input pin
- * 
- *              PORTC
- *                  - RC7: GPIO Input pin (EUSART Rx)
+ *                  - RA5: GPIO Output pin (SR Latch. SRnQ function is on RA5)
+ *                  - RA4: GPIO Output pin (SR Latch. SRQ function is on RA4)
  * 
  *
  * @param[in]    N/A.
@@ -77,11 +73,8 @@ void conf_clk ( void )
  *
  * @author      Manuel Caballero
  * @date        08/December/2023
- * @version     27/March/2024       RA3 as a C1IN+ and RA0 as an C12IN0- pin
- *              10/February/2024    EUSART pins are configured
- *              15/December/2023    Turn all the LEDs off
- *                                  RA4 as an input pin
- *              08/December/2023    The ORIGIN
+ * @version     29/March/2024       R4 (SRQ) and R5 (SRnQ) as SR Latch pins.
+ *              27/March/2024       The ORIGIN
  * @pre         N/A
  * @warning     N/A
  */
@@ -102,38 +95,27 @@ void conf_gpio ( void )
     /* Turn all the LEDs off    */
     LATB    &=  ~( D3 | D4 | D5 );
     
-    /* RA4 as a digital I/O pin */
-    ANSELA  &=  ~( S2 );
+    /* RA5 and RA4 as digital I/O pins */
+    ANSELAbits.ANSA5  =  0U;
+    ANSELAbits.ANSA4  =  0U;
     
-    /* RA4 as an input pin */
-    TRISA   |=  S2;
+    /* RA5 and RA4 as output pins */
+    TRISAbits.TRISA5  =  0U;
+    TRISAbits.TRISA4  =  0U;
     
-    /* RA0 and RA3 as analog inputs   */
-    ANSELAbits.ANSA0    =   1U;
-    ANSELAbits.ANSA3    =   1U;
-    
-    /* RC7 as an input pin */
-    TRISC   |=  RX;
-    
-    /* RC6 as an output pin */
-    TRISC   &=  ~( TX );
+    /* SRnQ function is on RA5 */
+    APFCONbits.SRNQSEL  =   0U;
 }
 
 
 /**
- * @brief       void conf_comparator ( void )
- * @details     It configures the comparator peripheral.
+ * @brief       void conf_sr_latch ( void )
+ * @details     It configures the SR latch peripheral.
  *              
- *              C1 comparator
- *                  - Comparator output is not inverted
- *                  - C1VP connects to C1IN+ pin
- *                  - C1VN connects to C12IN0- pin
- *                  - The C1IF interrupt flag will be set upon a positive going edge of the C1OUT bit
- *                  - The C1IF interrupt flag will be set upon a negative going edge of the C1OUT bit
- *                  - Comparator Output is internal only
- *                  - Comparator operates in low-power, low-speed mode
- *                  - Comparator hysteresis disabled
- *                  - Interrupt enabled
+ *              SR Latch
+ *                  - External Q output is disabled
+ *                  - Q is present on the SRQ pin
+ *                  - #Q is present on the SRnQ pin
  * 
  * @param[in]    N/A.
  *
@@ -148,41 +130,68 @@ void conf_gpio ( void )
  * @pre         N/A 
  * @warning     N/A
  */
-void conf_comparator ( void )
+void conf_sr_latch ( void )
 {
-    /* Comparator disabled    */
-    CM1CON0bits.C1ON  =   0U;
+    /* SR Latch is disabled    */
+    SRCON0bits.SRLEN    =   0U;
     
-    /* Comparator output is not inverted    */
-    CM1CON0bits.C1POL  =   0U;
+    /* External Q output is disabled    */
+    SRCON0bits.SRQEN    =   0U;
     
-    /* Comparator Output is internal only    */
-    CM1CON0bits.C1OE  =   0U;
+    /* Q is present on the SRQ pin    */
+    SRCON0bits.SRQEN   =   1U;
     
-    /* Comparator operates in low-power, low-speed mode    */
-    CM1CON0bits.C1SP  =   0U;
+    /* #Q is present on the SRnQ pin    */
+    SRCON0bits.SRNQEN   =   1U;
     
-    /* Comparator hysteresis disabled    */
-    CM1CON0bits.C1HYS  =   0U;
-    
-    /* C1VP connects to C1IN+ pin   */
-    CM1CON1bits.C1PCH   =   0b00;
-    
-    /* Comparator Output Enabled   */
-    CM1CON1bits.C1NCH   =   0b00;
-    
-    /* The C1IF interrupt flag will be set upon a positive going edge of the C1OUT bit   */
-    CM1CON1bits.C1INTP   =   1U;
-    
-    /* The C1IF interrupt flag will be set upon a negative going edge of the C1OUT bit   */
-    CM1CON1bits.C1INTN   =   1U;
-    
-    /* Comparator enabled    */
-    CM1CON0bits.C1ON  =   1U;
+    /* SR Latch is ENABLED    */
+    SRCON0bits.SRLEN    =   1U;
+}
+
+
+/**
+ * @brief       void conf_Timer4 ( void )
+ * @details     It configures the Timer4.
+ *              
+ *              TMR4_flag ( TMR4 = PR4 ) = ( 1/( f_Timer4_OSC/4 ) )·Prescaler
+ * 
+ *              Timer4
+ *                  - FOSC = 1MHz
+ *                  - TMR2 overflows every 65.28ms
+ *                  - PR4 = [ TMR4_flag / ( 4·Prescaler·( 1/f_Timer4_OSC ) ] = [ 65.28ms / ( 64*4·( 1/1000000 ) ] = 255
+ *                  - TMR4 Flag enabled every ~ 0.26s: 65.28ms*Postcaler = 65.28ms*4 ~ 0.26s
+ *                  - Timer4 interrupt disabled
+ * 
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A
+ *
+ * @author      Manuel Caballero
+ * @date        29/March/2024
+ * @version     29/March/2024    The ORIGIN
+ * @pre         Error = 100*( 0.26 - 0.26112 )/0.26 ~ 0.43%
+ * @warning     N/A
+ */
+void conf_Timer4 ( void )
+{
+    /* Stops Timer4 */
+    T4CONbits.TMR4ON   =  0U;
         
-    /* Clear C1 comparator interrupt flag */
-    PIR2bits.C1IF   =   0U;
+    /* Prescaler is 64 */
+    T4CONbits.T4CKPS   =  0b11;
     
-    /* Enable Interrupt */
-    PIE2bits.C1IE   =   1U;
+    /* 1:4 Postscaler */
+    T4CONbits.T4OUTPS   =  0b0011;
+    
+    /* Timer4 overflows every 65.28ms ( TMR4 = PR4 )  */
+    PR4    =   255U;
+    
+    /* Clear Timer4 interrupt flag */
+    PIR3bits.TMR4IF   =   0U;
+    
+    /* Timer4 interrupt disabled */
+    PIE3bits.TMR4IE   =   0U;
 }
