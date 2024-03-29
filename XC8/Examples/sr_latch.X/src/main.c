@@ -1,14 +1,15 @@
 /**
  * @brief       main.c
- * @details     This example shows how to work with the internal peripheral: Comparator (C1).
+ * @details     This example shows how to work with the internal peripheral: SR Latch.
  * 
- *              C1- (RA0 -> C12IN0-) is the reference voltage while C1+ (RA3 -> C1IN+) is the input value.
- *              The D5 LED changes its state depending of C1 comparator:
- *                  - D5 LED ON:    C1+ > C1-
- *                  - D5 LED OFF:   C1+ <= C1-
- *                             
- *              The microcontroller is in SLEEP mode the rest of the time.  
- * 
+ *              Q and #Q will change their values every 0.26s according to the SR Latch pins: S and R.
+ *              
+ *              SR Latch:
+ *                  - S = 1, R = 0 --> Q = 1, #Q = 0.  
+ *                  - S = 0, R = 1 --> Q = 0, #Q = 1.
+ *              
+ *              The SR Latch is controlled by software using the SRPS and SRPR bits in SRCON0 register.
+ *              Both bits change their values by the Timer4 every 0.26s.
  *
  * @return      N/A
  *
@@ -60,45 +61,69 @@
 
 /**@brief Variables.
  */
-volatile uint8_t    myFlag;         /* Flag that indicates if there is a change by the comparator module */
+
+/**@brief Function prototypes.
+ */
+/** Delay function.
+  */
+void delay_260ms ( void );
 
 /**@brief Function for application main entry.
  */
-void main(void) {    
+void main(void) { 
     conf_clk        ();
     conf_gpio       ();
-    conf_comparator ();
+    conf_Timer4     ();
+    conf_sr_latch   ();
        
-    /* Enable interrupts    */
-    INTCONbits.PEIE =   1U; // Enables all active peripheral interrupts
-    INTCONbits.GIE  =   1U; // Enables all active interrupts
-    
-    /* Reset variables  */
-    myFlag  =   0U;
-    
+    /* Disable interrupts    */
+    INTCONbits.PEIE =   0U; // Disable all active peripheral interrupts
+    INTCONbits.GIE  =   0U; // Disable all active interrupts
+       
     while ( 1U )
     {
-       /* Change the state of the D5 LED depending of C1 output, go to sleep mode otherwise */
-        if ( myFlag != 0U )
-        {
-            /* Check comparator output  */
-            if ( CMOUTbits.MC1OUT == 0U )
-            {
-                /* If comparator output is low, D5 LED is off then   */
-                LATB    &=  ~D5;
-            }
-            else
-            {
-                /* If comparator output is high, D5 LED is on then   */
-                LATB    |=  D5;
-            }
-            
-            /* Reset variable  */
-            myFlag  =   0U;  
-        }
-        else
-        {
-            SLEEP();
-        }
+        /* SR Latch. Set = 1, Reset = 0 --> Q = 1, #Q = 0   */
+        SRCON0bits.SRPS =   1U;
+        SRCON0bits.SRPR =   0U;
+        delay_260ms ();
+        
+        /* SR Latch. Set = 0, Reset = 1 --> Q = 0, #Q = 1   */
+        SRCON0bits.SRPS =   0U;
+        SRCON0bits.SRPR =   1U;
+        delay_260ms ();
     }
+}
+
+
+
+/**
+ * @brief       void delay_260ms ( void )
+ * @details     260ms delay function by Timer4 module (polling mode).
+ *
+ * @param[in]    N/A.
+ *
+ * @param[out]   N/A.
+ *
+ *
+ * @return      N/A.
+ *
+ * @author      Manuel Caballero
+ * @date        29/March/2024
+ * @version     29/March/2024   The ORIGIN
+ * @pre         N/A
+ * @warning     N/A.
+ */
+void delay_260ms ( void )
+{
+    /* Start timer4 */
+    T4CONbits.TMR4ON   =  1U;
+    
+    /* Check if Timer4 Overflow is triggered by polling */
+    while ( PIR3bits.TMR4IF == 0U );
+    
+    /* Clear the interrupt flag   */
+    PIR3bits.TMR4IF = 0U;
+    
+    /* Stop timer4 */
+    T4CONbits.TMR4ON   =  0U;
 }
