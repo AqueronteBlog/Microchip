@@ -168,7 +168,7 @@ void conf_comparator ( void )
     /* C1VP connects to C1IN+ pin   */
     CM1CON1bits.C1PCH   =   0b00;
     
-    /* Comparator Output Enabled   */
+    /* C1VN connects to C12IN0- pin   */
     CM1CON1bits.C1NCH   =   0b00;
     
     /* The C1IF interrupt flag will be set upon a positive going edge of the C1OUT bit   */
