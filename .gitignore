@@ -117,3 +117,13 @@ XC8/Examples/timer1_overflow.X/dist/default/production/timer1_overflow.X.product
 /XC8/Examples/project_example.X/nbproject
 /XC8/Examples/project_example.X/nbproject
 /XC8/Examples/project_example.X/nbproject
+/XC_DSC/examples/gpio_out/.vscode
+/XC_DSC/examples/gpio_out/_build
+/XC_DSC/examples/gpio_out/cmake
+/XC_DSC/examples/gpio_out/out
+XC_DSC/examples/gpio_out/README.md
+/XC_DSC/examples/template/.vscode
+/XC_DSC/examples/template/_build
+/XC_DSC/examples/template/cmake
+/XC_DSC/examples/template/out
+XC_DSC/examples/template/README.md
