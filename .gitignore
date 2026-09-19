@@ -127,3 +127,11 @@ XC_DSC/examples/gpio_out/README.md
 /XC_DSC/examples/template/cmake
 /XC_DSC/examples/template/out
 XC_DSC/examples/template/README.md
+/XC8/Examples/project_example.X/nbproject
+/XC8/Examples/project_example.X/nbproject
+XC8/Examples/project_example.X/nbproject/configurations.xml
+XC8/Examples/project_example.X/nbproject/Makefile-default.mk
+XC8/Examples/project_example.X/nbproject/Makefile-genesis.properties
+XC8/Examples/project_example.X/nbproject/Makefile-impl.mk
+XC8/Examples/project_example.X/nbproject/Makefile-local-default.mk
+XC8/Examples/project_example.X/nbproject/Makefile-variables.mk
