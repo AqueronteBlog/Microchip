@@ -135,3 +135,9 @@ XC8/Examples/project_example.X/nbproject/Makefile-genesis.properties
 XC8/Examples/project_example.X/nbproject/Makefile-impl.mk
 XC8/Examples/project_example.X/nbproject/Makefile-local-default.mk
 XC8/Examples/project_example.X/nbproject/Makefile-variables.mk
+/XC_DSC/examples/gpio_in_polling/.vscode
+/XC_DSC/examples/gpio_in_polling/_build
+/XC_DSC/examples/gpio_in_polling/cmake
+/XC_DSC/examples/gpio_in_polling/out
+XC_DSC/examples/gpio_in_polling/README.md
+XC_DSC/examples/gpio_in_polling/gpio_in_polling.code-workspace
